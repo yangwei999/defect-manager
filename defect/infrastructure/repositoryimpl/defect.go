@@ -17,7 +17,8 @@ func NewDefect(cfg *Config) repository.Defect {
 }
 
 func (d defectImpl) Add(defect domain.Defect) error {
-	return nil
+	do := d.toDefectDO(defect)
+	return d.db.FirstOrCreate(defectDO{Id: do.Id}, do)
 }
 
 func (d defectImpl) Save(defect domain.Defect) error {

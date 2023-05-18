@@ -4,6 +4,7 @@ import (
 	"github.com/opensourceways/server-common-lib/utils"
 
 	"github.com/opensourceways/defect-manager/common/infrastructure/postgres"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/repositoryimpl"
 )
 
 func LoadConfig(path string) (*Config, error) {
@@ -30,6 +31,8 @@ type configSetDefault interface {
 
 type Config struct {
 	Postgres postgres.Config `json:"postgres"    required:"true"`
+
+	repositoryimpl.Config
 }
 
 func (cfg *Config) configItems() []interface{} {
