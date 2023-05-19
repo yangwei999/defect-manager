@@ -7,14 +7,20 @@ import (
 type Defect struct {
 	Kernel          string
 	Component       string
-	System          dp.SystemVersion
+	SystemVersion   dp.SystemVersion
 	ReferenceURL    dp.URL
 	GuidanceURL     dp.URL
 	Description     string
 	SeverityLevel   dp.SeverityLevel
-	AffectedSystems string
+	AffectedVersion string
 	ABI             string
 	ProductTree     ProductTree
-	IssueNumber     string
-	IssueStatus     dp.IssueStatus
+	Issue           Issue
+}
+
+type Issue struct {
+	Org    string
+	Repo   string
+	Number string
+	Status dp.IssueStatus
 }
