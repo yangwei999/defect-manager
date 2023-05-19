@@ -2,25 +2,27 @@ package dp
 
 import (
 	"errors"
-	"regexp"
+	"net/url"
 )
 
-var urlReg = regexp.MustCompile(`^(http|https)://.+`)
-
-type url string
+type dpUrl string
 
 type URL interface {
 	URL() string
 }
 
-func NewUrl(s string) (URL, error) {
-	if !urlReg.MatchString(s) {
+func NewURL(s string) (URL, error) {
+	if s == "" {
+		return nil, errors.New("empty url")
+	}
+
+	if _, err := url.ParseRequestURI(s); err != nil {
 		return nil, errors.New("invalid url")
 	}
 
-	return url(s), nil
+	return dpUrl(s), nil
 }
 
-func (u url) URL() string {
+func (u dpUrl) URL() string {
 	return string(u)
 }

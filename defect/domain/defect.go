@@ -12,15 +12,15 @@ type Defect struct {
 	GuidanceURL     dp.URL
 	Description     string
 	SeverityLevel   dp.SeverityLevel
-	AffectedVersion string
+	AffectedVersion []dp.SystemVersion
 	ABI             string
 	ProductTree     ProductTree
 	Issue           Issue
 }
 
 type Issue struct {
+	ID     string
 	Org    string
 	Repo   string
-	Number string
 	Status dp.IssueStatus
 }
