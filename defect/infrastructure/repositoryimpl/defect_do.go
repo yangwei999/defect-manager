@@ -18,8 +18,8 @@ func (d defectImpl) toDefectDO(defect domain.Defect) defectDO {
 	}
 }
 
-func (d defectDO) toDefect(do defectDO) domain.Defect {
+func (d defectDO) toDefect() domain.Defect {
 	return domain.Defect{
-		Kernel: do.Kernel,
+		Kernel: d.Kernel,
 	}
 }

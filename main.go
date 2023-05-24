@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/opensourceways/server-common-lib/logrusutil"
@@ -10,7 +11,8 @@ import (
 
 	"github.com/opensourceways/defect-manager/common/infrastructure/postgres"
 	"github.com/opensourceways/defect-manager/config"
-	"github.com/opensourceways/defect-manager/server"
+	"github.com/opensourceways/defect-manager/defect/domain"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/repositoryimpl"
 )
 
 type options struct {
@@ -68,6 +70,13 @@ func main() {
 		return
 	}
 
-	// run
-	server.StartWebServer(o.service.Port, o.service.GracePeriod, cfg)
+	pg := repositoryimpl.NewDefect(&cfg.Config)
+
+	d := domain.Defect{Kernel: "waggg"}
+
+	err = pg.Add(d)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 }

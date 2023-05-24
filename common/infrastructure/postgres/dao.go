@@ -185,6 +185,15 @@ func (t DbTable) CreateOrUpdate(result interface{}, updates ...string) error {
 	).Create(result).Error
 }
 
+//func (t DbTable) Delete(filter []interface{}) error {
+//	query := db.Table(t.name)
+//	for i := range filter {
+//		query.Where(filter[i].condition(), filter[i].value)
+//	}
+//
+//	return query.Delete(nil).Error
+//}
+
 func (t DbTable) DB() *gorm.DB {
 	return db
 }
