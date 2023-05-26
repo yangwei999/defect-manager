@@ -8,18 +8,18 @@ type Defect struct {
 	Kernel          string
 	Component       string
 	SystemVersion   dp.SystemVersion
+	Description     string
 	ReferenceURL    dp.URL
 	GuidanceURL     dp.URL
-	Description     string
+	Influence       string
 	SeverityLevel   dp.SeverityLevel
 	AffectedVersion []dp.SystemVersion
 	ABI             string
-	ProductTree     ProductTree
 	Issue           Issue
 }
 
 type Issue struct {
-	ID     string
+	Number string
 	Org    string
 	Repo   string
 	Status dp.IssueStatus
