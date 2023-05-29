@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 var (
@@ -56,6 +55,22 @@ func NewEqualFilter(column string, value interface{}) ColumnFilter {
 	return ColumnFilter{
 		column: column,
 		symbol: "=",
+		value:  value,
+	}
+}
+
+func NewGreaterFilter(column string, value interface{}) ColumnFilter {
+	return ColumnFilter{
+		column: column,
+		symbol: ">=",
+		value:  value,
+	}
+}
+
+func NewInFilter(column string, value interface{}) ColumnFilter {
+	return ColumnFilter{
+		column: column,
+		symbol: "IN",
 		value:  value,
 	}
 }
@@ -175,25 +190,6 @@ func (t DbTable) ExecSQL(sql string, result interface{}, args ...interface{}) er
 	return db.Exec(sql, args...).Find(result).Error
 }
 
-// CreateOrUpdate updates must use primary key [uuid], other fields are invalid.
-func (t DbTable) CreateOrUpdate(result interface{}, updates ...string) error {
-	return db.Table(t.name).Clauses(
-		clause.OnConflict{
-			Columns:   []clause.Column{{Name: "uuid"}},
-			DoUpdates: clause.AssignmentColumns(updates),
-		},
-	).Create(result).Error
-}
-
-//func (t DbTable) Delete(filter []interface{}) error {
-//	query := db.Table(t.name)
-//	for i := range filter {
-//		query.Where(filter[i].condition(), filter[i].value)
-//	}
-//
-//	return query.Delete(nil).Error
-//}
-
 func (t DbTable) DB() *gorm.DB {
 	return db
 }
@@ -204,4 +200,16 @@ func (t DbTable) IsRowNotFound(err error) bool {
 
 func (t DbTable) IsRowExists(err error) bool {
 	return errors.Is(err, errRowExists)
+}
+
+func (t DbTable) CreateTable(v interface{}) error {
+	if !db.Migrator().HasTable(v) {
+		return db.Migrator().CreateTable(v)
+	}
+
+	return nil
+}
+
+func (t DbTable) AutoMigrate(dst interface{}) error {
+	return db.AutoMigrate(&dst)
 }

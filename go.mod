@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.9.0
-	github.com/google/uuid v1.3.0
+	github.com/lib/pq v1.10.9
 	github.com/opensourceways/server-common-lib v0.0.0-20230208064916-61fc43dfb8db
 	github.com/sirupsen/logrus v1.9.0
 	github.com/swaggo/files v1.0.1

@@ -12,6 +12,7 @@ import (
 	"github.com/opensourceways/defect-manager/common/infrastructure/postgres"
 	"github.com/opensourceways/defect-manager/config"
 	"github.com/opensourceways/defect-manager/defect/domain"
+	"github.com/opensourceways/defect-manager/defect/domain/dp"
 	"github.com/opensourceways/defect-manager/defect/infrastructure/repositoryimpl"
 )
 
@@ -70,11 +71,42 @@ func main() {
 		return
 	}
 
-	pg := repositoryimpl.NewDefect(&cfg.Config)
+	pg, err := repositoryimpl.NewDefect(&cfg.Config)
+	if err != nil {
+		logrus.Errorf("init defect failed, err:%s", err.Error())
 
-	d := domain.Defect{Kernel: "waggg"}
+		return
+	}
 
-	err = pg.Add(d)
+	version, _ := dp.NewSystemVersion("openEuler-22.03")
+	url, _ := dp.NewURL("https://www.qq.com")
+	level, _ := dp.NewSeverityLevel("Critical")
+
+	status, _ := dp.NewIssueStatus("open")
+
+	d := domain.Defect{
+		Kernel:          "i am kernel",
+		Component:       "kernel",
+		SystemVersion:   version,
+		Description:     "i am description",
+		ReferenceURL:    url,
+		GuidanceURL:     url,
+		Influence:       "i am influence",
+		SeverityLevel:   level,
+		AffectedVersion: []dp.SystemVersion{version, version},
+		ABI:             "i am abi",
+		Issue: domain.Issue{
+			Number: "FKJ94",
+			Org:    "openeuler",
+			Repo:   "community",
+			Status: status,
+		},
+	}
+
+	//t, _ := time.Parse("2006-01-02", "2023-05-29")
+	//opt := repository.OptToFindDefects{BeginTime: t}
+	err = pg.SaveDefect(&d)
+	//_, err = pg.FindDefects(opt)
 	if err != nil {
 		fmt.Println(err)
 	}

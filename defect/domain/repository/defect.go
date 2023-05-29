@@ -1,11 +1,22 @@
 package repository
 
-import "github.com/opensourceways/defect-manager/defect/domain"
+import (
+	"time"
+
+	"github.com/opensourceways/defect-manager/defect/domain"
+	"github.com/opensourceways/defect-manager/defect/domain/dp"
+)
+
+type OptToFindDefects struct {
+	BeginTime time.Time
+	Org       string
+	Number    []string
+	Status    dp.IssueStatus
+}
 
 type DefectRepository interface {
-	AddDefect(domain.Defect) error
-	SaveDefect(domain.Defect) error
-
-	FindDefects(issueNumber []string) ([]domain.Defect, error)
-	FindDefectsByTime(time string) ([]domain.Defect, error)
+	HasDefect(*domain.Defect) (bool, error)
+	AddDefect(*domain.Defect) error
+	SaveDefect(*domain.Defect) error
+	FindDefects(OptToFindDefects) ([]*domain.Defect, error)
 }

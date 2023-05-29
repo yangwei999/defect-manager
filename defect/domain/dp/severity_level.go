@@ -27,9 +27,9 @@ func NewSeverityLevel(s string) (SeverityLevel, error) {
 }
 
 type SeverityLevel interface {
-	SeverityLevel() string
+	String() string
 }
 
-func (s severityLevel) SeverityLevel() string {
+func (s severityLevel) String() string {
 	return string(s)
 }

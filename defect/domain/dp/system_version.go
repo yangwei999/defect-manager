@@ -10,7 +10,7 @@ var systemReg = regexp.MustCompile(`^openEuler-`)
 type systemVersion string
 
 type SystemVersion interface {
-	Version() string
+	String() string
 }
 
 func NewSystemVersion(s string) (SystemVersion, error) {
@@ -21,6 +21,6 @@ func NewSystemVersion(s string) (SystemVersion, error) {
 	return systemVersion(s), nil
 }
 
-func (s systemVersion) Version() string {
+func (s systemVersion) String() string {
 	return string(s)
 }

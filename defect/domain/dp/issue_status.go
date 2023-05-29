@@ -19,7 +19,7 @@ var validIssueStatus = map[string]bool{
 type issueStatus string
 
 type IssueStatus interface {
-	Status() string
+	String() string
 }
 
 func NewIssueStatus(s string) (IssueStatus, error) {
@@ -30,6 +30,6 @@ func NewIssueStatus(s string) (IssueStatus, error) {
 	return issueStatus(s), nil
 }
 
-func (s issueStatus) Status() string {
+func (s issueStatus) String() string {
 	return string(s)
 }
