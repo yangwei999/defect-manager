@@ -71,14 +71,14 @@ func toSystemVersion(arr pq.StringArray) []dp.SystemVersion {
 	return versions
 }
 
-func (d defectDO) toDefect() *domain.Defect {
+func (d defectDO) toDefect() domain.Defect {
 	version, _ := dp.NewSystemVersion(d.SystemVersion)
 	referenceURL, _ := dp.NewURL(d.ReferenceURL)
 	guidanceURL, _ := dp.NewURL(d.GuidanceURL)
 	severityLevel, _ := dp.NewSeverityLevel(d.SeverityLevel)
 	status, _ := dp.NewIssueStatus(d.Status)
 
-	return &domain.Defect{
+	return domain.Defect{
 		Kernel:          d.Kernel,
 		Component:       d.Component,
 		SystemVersion:   version,

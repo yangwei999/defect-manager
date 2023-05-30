@@ -2,17 +2,12 @@ package domain
 
 import (
 	"github.com/opensourceways/defect-manager/defect/domain/dp"
+	"github.com/opensourceways/defect-manager/utils"
 )
 
-var maintainVersion = map[string]bool{
-	"openEuler-20.03-LTS-SP1": true,
-	"openEuler-20.03-LTS-SP3": true,
-	"openEuler-22.03-LTS":     true,
-	"openEuler-22.03-LTS-SP1": true,
-}
-
-type Defects []*Defect
-type DefectsByComponent []*Defect
+type Defects []Defect
+type DefectsByComponent []Defect
+type DefectsByVersion []Defect
 
 type Defect struct {
 	Kernel          string
@@ -35,37 +30,35 @@ type Issue struct {
 	Status dp.IssueStatus
 }
 
-func (ds Defects) GenerateSecurityBulletins() []SecurityBulletin {
+func (d Defect) IsAffectVersion(version dp.SystemVersion) bool {
+	for _, v := range d.AffectedVersion {
+		if v == version {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (ds Defects) SeparateByComponent() map[string]DefectsByComponent {
 	classifyByComponent := make(map[string]DefectsByComponent)
 	for _, d := range ds {
 		classifyByComponent[d.Component] = append(classifyByComponent[d.Component], d)
 	}
 
-	// the length can't exceed len(ds)
-	sbs := make([]SecurityBulletin, len(ds))
-
-	for _, cds := range classifyByComponent {
-		if cds.IsCombined() {
-			sbs = append(sbs, cds.CombinedBulletin())
-		} else {
-			sbs = append(sbs, cds.SeparatedBulletins()...)
-		}
-
-	}
-
-	return sbs
+	return classifyByComponent
 }
 
 //IsCombined DefectsByComponent is a component-differentiated set of defects
 //
-func (cds DefectsByComponent) IsCombined() bool {
-	for _, d := range cds {
-		if len(d.AffectedVersion) != len(maintainVersion) {
+func (dsc DefectsByComponent) IsCombined() bool {
+	for _, d := range dsc {
+		if len(d.AffectedVersion) != len(dp.MaintainVersion) {
 			return false
 		}
 
 		for _, version := range d.AffectedVersion {
-			if !maintainVersion[version.String()] {
+			if !dp.MaintainVersion[version] {
 				return false
 			}
 		}
@@ -74,12 +67,48 @@ func (cds DefectsByComponent) IsCombined() bool {
 	return true
 }
 
-func (cds DefectsByComponent) CombinedBulletin() SecurityBulletin {
-
-	return SecurityBulletin{}
+//CombinedBulletin put all defect in a bulletin
+func (dsc DefectsByComponent) CombinedBulletin() SecurityBulletin {
+	return SecurityBulletin{
+		AffectedVersion: dsc[0].AffectedVersion,
+		Date:            utils.Date(),
+		Component: Component{
+			Name: dsc[0].Component,
+		},
+		Defects: Defects(dsc),
+	}
 }
 
-func (cds DefectsByComponent) SeparatedBulletins() []SecurityBulletin {
+// SeparatedBulletins separate bulletins by version name
+func (dsc DefectsByComponent) SeparatedBulletins() []SecurityBulletin {
+	var sbs []SecurityBulletin
+	for version, ds := range dsc.separateByVersion() {
+		sbs = append(sbs, ds.BulletinByVersion(version))
+	}
 
-	return nil
+	return sbs
+}
+
+func (dsv DefectsByVersion) BulletinByVersion(version dp.SystemVersion) SecurityBulletin {
+	return SecurityBulletin{
+		AffectedVersion: []dp.SystemVersion{version},
+		Date:            utils.Date(),
+		Component: Component{
+			Name: dsv[0].Component,
+		},
+		Defects: Defects(dsv),
+	}
+}
+
+func (dsc DefectsByComponent) separateByVersion() map[dp.SystemVersion]DefectsByVersion {
+	classifyByVersion := make(map[dp.SystemVersion]DefectsByVersion)
+	for version := range dp.MaintainVersion {
+		for _, d := range dsc {
+			if d.IsAffectVersion(version) {
+				classifyByVersion[version] = append(classifyByVersion[version], d)
+			}
+		}
+	}
+
+	return classifyByVersion
 }

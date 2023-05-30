@@ -1,29 +1,20 @@
 package domain
 
 import (
-	"time"
-
 	"github.com/opensourceways/defect-manager/defect/domain/dp"
 )
 
 type SecurityBulletin struct {
 	AffectedVersion []dp.SystemVersion
 	Identification  string
-	Date            time.Time
+	Date            string
 	Component       Component
-	Influences      []string
-	Vulnerability   []Vulnerability
+	Defects         Defects
 }
 
 type Component struct {
 	Name        string
 	ProductTree ProductTree
-}
-
-type Vulnerability struct {
-	Description     string
-	SeverityLevel   dp.SeverityLevel
-	AffectedVersion []dp.SystemVersion
 }
 
 type ProductTree struct {

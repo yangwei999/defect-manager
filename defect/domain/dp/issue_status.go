@@ -9,12 +9,16 @@ const (
 	rejected    = "rejected"
 )
 
-var validIssueStatus = map[string]bool{
-	open:        true,
-	progressing: true,
-	closed:      true,
-	rejected:    true,
-}
+var (
+	validIssueStatus = map[string]bool{
+		open:        true,
+		progressing: true,
+		closed:      true,
+		rejected:    true,
+	}
+
+	IssueStatusClosed = issueStatus(closed)
+)
 
 type issueStatus string
 
