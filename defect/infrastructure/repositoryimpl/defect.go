@@ -61,7 +61,7 @@ func (impl defectImpl) SaveDefect(defect *domain.Defect) error {
 	return impl.db.UpdateRecord(filter, &do)
 }
 
-func (impl defectImpl) FindDefects(opt repository.OptToFindDefects) (ds []*domain.Defect, err error) {
+func (impl defectImpl) FindDefects(opt repository.OptToFindDefects) (ds domain.Defects, err error) {
 	var filter []postgres.ColumnFilter
 	filter = append(filter, postgres.NewGreaterFilter(fieldCreatedAt, opt.BeginTime))
 
@@ -88,7 +88,7 @@ func (impl defectImpl) FindDefects(opt repository.OptToFindDefects) (ds []*domai
 		return
 	}
 
-	ds = make([]*domain.Defect, len(dos))
+	ds = make(domain.Defects, len(dos))
 	for k, d := range dos {
 		ds[k] = d.toDefect()
 	}
