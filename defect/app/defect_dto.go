@@ -27,6 +27,16 @@ type CollectDefectsDTO struct {
 }
 
 func ToCollectDefectsDTO(defects domain.Defects) []CollectDefectsDTO {
+	dto := make([]CollectDefectsDTO, len(defects))
+	for k, d := range defects {
+		dto[k] = CollectDefectsDTO{
+			Number:    d.Issue.Number,
+			Component: d.Component,
+			Status:    d.Issue.Status.String(),
+			Score:     d.SeverityLevel.String(),
+			Version:   d.SystemVersion.String(),
+		}
+	}
 
-	return nil
+	return dto
 }

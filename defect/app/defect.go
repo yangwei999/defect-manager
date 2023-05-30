@@ -13,7 +13,7 @@ import (
 type DefectService interface {
 	SaveDefects(CmdToSaveDefect) error
 	CollectDefects(CmdToCollectDefects) ([]CollectDefectsDTO, error)
-	GenerateBulletins([]string) error
+	GenerateBulletins(CmdToGenerateBulletins) error
 }
 
 func NewDefectService(
@@ -22,16 +22,16 @@ func NewDefectService(
 	b bulletin.Bulletin,
 ) *defectService {
 	return &defectService{
-		repo:     r,
-		tree:     t,
-		bulletin: b,
+		repo:        r,
+		productTree: t,
+		bulletin:    b,
 	}
 }
 
 type defectService struct {
-	repo     repository.DefectRepository
-	tree     producttree.ProductTree
-	bulletin bulletin.Bulletin
+	repo        repository.DefectRepository
+	productTree producttree.ProductTree
+	bulletin    bulletin.Bulletin
 }
 
 func (d defectService) SaveDefects(cmd CmdToSaveDefect) error {
@@ -73,7 +73,7 @@ func (d defectService) GenerateBulletins(cmd CmdToGenerateBulletins) error {
 		return err
 	}
 
-	defectsOfComponent := defects.SeparateByComponent()
+	defectsOfComponent := defects.GroupByComponent()
 	for component, ds := range defectsOfComponent {
 		var securityBulletins []domain.SecurityBulletin
 
@@ -89,8 +89,10 @@ func (d defectService) GenerateBulletins(cmd CmdToGenerateBulletins) error {
 	return nil
 }
 
+//generateByComponent producttree is distinguished by the component name and shared across bulletins
+//therefore, when there is a performance problem, we can run this function in the goroutine
 func (d defectService) generateByComponent(component string, sbs []domain.SecurityBulletin) {
-	tree, err := d.tree.GetTree(component)
+	tree, err := d.productTree.GetTree(component)
 	if err != nil {
 		logrus.Errorf("get tree of %s err: %s", component, err.Error())
 

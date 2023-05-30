@@ -6,7 +6,11 @@ import (
 )
 
 type Defects []Defect
+
+//DefectsByComponent is group of defects by component
 type DefectsByComponent []Defect
+
+//DefectsByVersion is group of DefectsByComponent by version
 type DefectsByVersion []Defect
 
 type Defect struct {
@@ -40,17 +44,19 @@ func (d Defect) IsAffectVersion(version dp.SystemVersion) bool {
 	return false
 }
 
-func (ds Defects) SeparateByComponent() map[string]DefectsByComponent {
-	classifyByComponent := make(map[string]DefectsByComponent)
+//GroupByComponent group defects by component
+func (ds Defects) GroupByComponent() map[string]DefectsByComponent {
+	group := make(map[string]DefectsByComponent)
 	for _, d := range ds {
-		classifyByComponent[d.Component] = append(classifyByComponent[d.Component], d)
+		group[d.Component] = append(group[d.Component], d)
 	}
 
-	return classifyByComponent
+	return group
 }
 
-//IsCombined DefectsByComponent is a component-differentiated set of defects
-//
+//IsCombined DefectsByComponent is a component-differentiated set of defects,
+//Bulletins are consolidated into one when all issues of a component affect all versions currently maintained,
+//otherwise they are split into multiple bulletins by version
 func (dsc DefectsByComponent) IsCombined() bool {
 	for _, d := range dsc {
 		if len(d.AffectedVersion) != len(dp.MaintainVersion) {
@@ -67,7 +73,7 @@ func (dsc DefectsByComponent) IsCombined() bool {
 	return true
 }
 
-//CombinedBulletin put all defect in a bulletin
+//CombinedBulletin put all defects in one bulletin
 func (dsc DefectsByComponent) CombinedBulletin() SecurityBulletin {
 	return SecurityBulletin{
 		AffectedVersion: dsc[0].AffectedVersion,
@@ -79,17 +85,17 @@ func (dsc DefectsByComponent) CombinedBulletin() SecurityBulletin {
 	}
 }
 
-// SeparatedBulletins separate bulletins by version name
+// SeparatedBulletins split into multiple bulletins by version
 func (dsc DefectsByComponent) SeparatedBulletins() []SecurityBulletin {
 	var sbs []SecurityBulletin
 	for version, ds := range dsc.separateByVersion() {
-		sbs = append(sbs, ds.BulletinByVersion(version))
+		sbs = append(sbs, ds.bulletinByVersion(version))
 	}
 
 	return sbs
 }
 
-func (dsv DefectsByVersion) BulletinByVersion(version dp.SystemVersion) SecurityBulletin {
+func (dsv DefectsByVersion) bulletinByVersion(version dp.SystemVersion) SecurityBulletin {
 	return SecurityBulletin{
 		AffectedVersion: []dp.SystemVersion{version},
 		Date:            utils.Date(),
