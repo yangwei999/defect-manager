@@ -16,8 +16,8 @@ import (
 	"github.com/opensourceways/defect-manager/defect/domain/dp"
 )
 
-func NewProductTree(cfg *Config) *ProductTreeImpl {
-	return &ProductTreeImpl{
+func NewProductTree(cfg *Config) *productTreeImpl {
+	return &productTreeImpl{
 		cli: client.NewClient(func() []byte {
 			return []byte(cfg.Token)
 		}),
@@ -27,7 +27,7 @@ func NewProductTree(cfg *Config) *ProductTreeImpl {
 	}
 }
 
-type ProductTreeImpl struct {
+type productTreeImpl struct {
 	cli client.Client
 	cfg *Config
 
@@ -37,12 +37,12 @@ type ProductTreeImpl struct {
 	lock sync.Mutex
 }
 
-func (impl *ProductTreeImpl) CleanCache() {
+func (impl *productTreeImpl) CleanCache() {
 	impl.rpmCache = make(map[string][]byte)
 	impl.rpmOfComponentCache = make(map[string]string)
 }
 
-func (impl *ProductTreeImpl) GetTree(component string, versions []dp.SystemVersion) (domain.ProductTree, error) {
+func (impl *productTreeImpl) GetTree(component string, versions []dp.SystemVersion) (domain.ProductTree, error) {
 	impl.lock.Lock()
 	if len(impl.rpmCache) == 0 {
 		impl.initRPMCache()
@@ -64,7 +64,7 @@ func (impl *ProductTreeImpl) GetTree(component string, versions []dp.SystemVersi
 	return impl.buildTree(affectedRPM), nil
 }
 
-func (impl *ProductTreeImpl) parseRPM(component, version string) string {
+func (impl *productTreeImpl) parseRPM(component, version string) string {
 	buf := bytes.NewBuffer(impl.rpmCache[version])
 
 	var rpmOfComponent string
@@ -92,7 +92,7 @@ func (impl *ProductTreeImpl) parseRPM(component, version string) string {
 	return rpmOfComponent
 }
 
-func (impl *ProductTreeImpl) initRPMCache() {
+func (impl *productTreeImpl) initRPMCache() {
 	for version := range dp.MaintainVersion {
 		for {
 			content, err := impl.cli.GetPathContent(
@@ -121,7 +121,7 @@ func (impl *ProductTreeImpl) initRPMCache() {
 	}
 }
 
-func (impl *ProductTreeImpl) buildTree(affectedRPM map[string]string) domain.ProductTree {
+func (impl *productTreeImpl) buildTree(affectedRPM map[string]string) domain.ProductTree {
 	tree := make(map[string][]domain.Product)
 	for version, rpms := range affectedRPM {
 
