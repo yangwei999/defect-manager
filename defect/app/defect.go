@@ -1,9 +1,6 @@
 package app
 
 import (
-	"github.com/sirupsen/logrus"
-
-	"github.com/opensourceways/defect-manager/defect/domain"
 	"github.com/opensourceways/defect-manager/defect/domain/bulletin"
 	"github.com/opensourceways/defect-manager/defect/domain/dp"
 	"github.com/opensourceways/defect-manager/defect/domain/producttree"
@@ -59,6 +56,8 @@ func (d defectService) CollectDefects(cmd CmdToCollectDefects) (dto []CollectDef
 		return
 	}
 
+	// todo filter published defects
+
 	return ToCollectDefectsDTO(defects), nil
 }
 
@@ -73,40 +72,22 @@ func (d defectService) GenerateBulletins(cmd CmdToGenerateBulletins) error {
 		return err
 	}
 
-	defectsOfComponent := defects.GroupByComponent()
-	for component, ds := range defectsOfComponent {
-		var securityBulletins []domain.SecurityBulletin
+	bulletins := defects.GenerateBulletins()
 
-		if ds.IsCombined() {
-			securityBulletins = append(securityBulletins, ds.CombinedBulletin())
-		} else {
-			securityBulletins = append(securityBulletins, ds.SeparatedBulletins()...)
+	for _, b := range bulletins {
+		b.ProductTree, err = d.productTree.GetTree(b.Component, b.AffectedVersion)
+		if err != nil {
+			//todo log
+			continue
 		}
 
-		d.generateByComponent(component, securityBulletins)
-	}
-
-	return nil
-}
-
-//generateByComponent producttree is distinguished by the component name and shared across bulletins
-//therefore, when there is a performance problem, we can run this function in the goroutine
-func (d defectService) generateByComponent(component string, sbs []domain.SecurityBulletin) {
-	tree, err := d.productTree.GetTree(component)
-	if err != nil {
-		logrus.Errorf("get tree of %s err: %s", component, err.Error())
-
-		return
-	}
-
-	for _, sb := range sbs {
-		sb.Component.ProductTree = tree
-
-		_, err := d.bulletin.Generate(sb)
+		_, err := d.bulletin.Generate(b)
 		if err != nil {
 			continue
 		}
 
-		//todo upload to obs
+		//todo upload obs
 	}
+
+	return nil
 }
