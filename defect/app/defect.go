@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/opensourceways/defect-manager/defect/domain/bulletin"
 	"github.com/opensourceways/defect-manager/defect/domain/dp"
 	"github.com/opensourceways/defect-manager/defect/domain/producttree"
@@ -74,6 +76,7 @@ func (d defectService) GenerateBulletins(cmd CmdToGenerateBulletins) error {
 
 	bulletins := defects.GenerateBulletins()
 
+	defer d.productTree.CleanCache()
 	for _, b := range bulletins {
 		b.ProductTree, err = d.productTree.GetTree(b.Component, b.AffectedVersion)
 		if err != nil {
@@ -81,10 +84,12 @@ func (d defectService) GenerateBulletins(cmd CmdToGenerateBulletins) error {
 			continue
 		}
 
-		_, err := d.bulletin.Generate(b)
+		xmlData, err := d.bulletin.Generate(&b)
 		if err != nil {
 			continue
 		}
+
+		fmt.Println(string(xmlData))
 
 		//todo upload obs
 	}

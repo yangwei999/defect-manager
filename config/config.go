@@ -4,6 +4,7 @@ import (
 	"github.com/opensourceways/server-common-lib/utils"
 
 	"github.com/opensourceways/defect-manager/common/infrastructure/postgres"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/bulletinimpl"
 	"github.com/opensourceways/defect-manager/defect/infrastructure/producttreeimpl"
 	"github.com/opensourceways/defect-manager/defect/infrastructure/repositoryimpl"
 )
@@ -33,6 +34,7 @@ type configSetDefault interface {
 type Config struct {
 	Postgres    postgres.Config        `json:"postgres"     required:"true"`
 	ProductTree producttreeimpl.Config `json:"product_tree" required:"true"`
+	Bulletin    bulletinimpl.Config    `json:"bulletin"`
 
 	repositoryimpl.Config
 }
@@ -41,6 +43,7 @@ func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
 		&cfg.Postgres,
 		&cfg.ProductTree,
+		&cfg.Bulletin,
 	}
 }
 

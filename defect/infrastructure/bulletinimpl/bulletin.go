@@ -1,1 +1,259 @@
 package bulletinimpl
+
+import (
+	"encoding/xml"
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/opensourceways/defect-manager/defect/domain"
+)
+
+func NewBulletin(c *Config) bulletinImpl {
+	return bulletinImpl{
+		cfg: c,
+	}
+}
+
+type bulletinImpl struct {
+	cfg *Config
+}
+
+func (impl bulletinImpl) Generate(sb *domain.SecurityBulletin) ([]byte, error) {
+
+	data := CvrfBA{
+		Xmlns:              impl.cfg.Xmlns,
+		XmlnsCvrf:          impl.cfg.XmlnsCvrf,
+		DocumentTitle:      impl.documentTitle(sb),
+		DocumentType:       "Security Advisory",
+		DocumentPublisher:  impl.documentPublisher(),
+		DocumentTracking:   impl.documentTracking(sb),
+		DocumentNotes:      impl.documentNotes(sb),
+		DocumentReferences: impl.documentReferences(sb),
+		ProductTree:        impl.productTree(sb),
+		Vulnerability:      impl.vulnerability(sb),
+	}
+
+	return xml.Marshal(data)
+}
+
+func (impl bulletinImpl) joinVersion(sb *domain.SecurityBulletin) string {
+	var title string
+	for _, v := range sb.AffectedVersion {
+		title += v.String() + ","
+	}
+
+	return strings.Trim(title, ",")
+}
+
+func (impl bulletinImpl) documentTitle(sb *domain.SecurityBulletin) DocumentTitle {
+	title := fmt.Sprintf("openEuler Bug Fix Advisory: %s update for %s",
+		sb.Component, impl.joinVersion(sb),
+	)
+	return DocumentTitle{
+		XmlLang:       "en",
+		DocumentTitle: title,
+	}
+}
+
+func (impl bulletinImpl) documentPublisher() DocumentPublisher {
+	return DocumentPublisher{
+		Type:             "Vendor",
+		ContactDetails:   impl.cfg.ContactDetails,
+		IssuingAuthority: impl.cfg.IssuingAuthority,
+	}
+}
+
+func (impl bulletinImpl) documentTracking(sb *domain.SecurityBulletin) DocumentTracking {
+	return DocumentTracking{
+		Identification: Identification{
+			Id: sb.Identification,
+		},
+		Status:  "Final",
+		Version: "1.0",
+		RevisionHistory: RevisionHistory{
+			Revision: []Revision{{
+				Number:      "1.0",
+				Date:        sb.Date,
+				Description: "Initial",
+			}},
+		},
+		InitialReleaseDate: sb.Date,
+		CurrentReleaseDate: sb.Date,
+		Generator: Generator{
+			Engine: "openEuler BA Tool V1.0",
+			Date:   sb.Date,
+		},
+	}
+}
+
+func (impl bulletinImpl) documentNotes(sb *domain.SecurityBulletin) DocumentNotes {
+	var description string
+	for _, defect := range sb.Defects {
+		description += fmt.Sprintf("%s(%s)\r\n\r\n", defect.Description, defect.Issue.Number)
+	}
+	description = strings.Trim(description, "\r\n\r\n")
+
+	return DocumentNotes{
+		Note: []Note{
+			{
+				Title:   "Synopsis",
+				Type:    "General",
+				Ordinal: "1",
+				XmlLang: "en",
+				Note:    fmt.Sprintf("%s bug update", sb.Component),
+			},
+			{
+				Title:   "Summary",
+				Type:    "General",
+				Ordinal: "2",
+				XmlLang: "en",
+				Note:    fmt.Sprintf("openEuler Bugfix Update for %s", impl.joinVersion(sb)),
+			},
+			{
+				Title:   "Description",
+				Type:    "General",
+				Ordinal: "3",
+				XmlLang: "en",
+				Note:    description,
+			},
+			{
+				Title:   "Affected Component",
+				Type:    "General",
+				Ordinal: "6",
+				XmlLang: "en",
+				Note:    sb.Component,
+			},
+		},
+	}
+}
+
+func (impl bulletinImpl) documentReferences(sb *domain.SecurityBulletin) DocumentReferences {
+	selfUrl := []CveUrl{
+		{
+			Url: impl.cfg.SecurityBulletinUrlPrefix + sb.Identification,
+		},
+	}
+
+	var defectUrl []CveUrl
+	for _, defect := range sb.Defects {
+		url := impl.cfg.DefectUrlPrefix + defect.Issue.Number
+		defectUrl = append(defectUrl, CveUrl{Url: url})
+	}
+
+	return DocumentReferences{
+		CveReference: []CveReference{
+			{
+				Type:   "Self",
+				CveUrl: selfUrl,
+			},
+			{
+				Type:   "openEuler Bugfix",
+				CveUrl: defectUrl,
+			},
+		},
+	}
+}
+
+func (impl bulletinImpl) productTree(sb *domain.SecurityBulletin) ProductTree {
+	getCpe := func(v string) string {
+		t := strings.Split(v, "-")
+		return fmt.Sprintf("cpe:/a:%v:%v:%v", t[0], t[0], strings.Join(t[1:], "-"))
+	}
+
+	var productOfVersion []FullProductName
+	for _, v := range sb.AffectedVersion {
+		productOfVersion = append(productOfVersion, FullProductName{
+			ProductId:       v.String(),
+			Cpe:             getCpe(v.String()),
+			FullProductName: v.String(),
+		})
+	}
+
+	branchOfVersion := OpenEulerBranch{
+		Type:            "Product Name",
+		Name:            "openEuler",
+		FullProductName: productOfVersion,
+	}
+
+	branches := []OpenEulerBranch{
+		branchOfVersion,
+	}
+
+	var productOfArch []FullProductName
+	for arch, products := range sb.ProductTree {
+		for _, p := range products {
+			productOfArch = append(productOfArch, FullProductName{
+				ProductId:       p.ID,
+				Cpe:             getCpe(p.CPE),
+				FullProductName: p.FullName,
+			})
+		}
+
+		branch := OpenEulerBranch{
+			Type:            "Package Arch",
+			Name:            arch,
+			FullProductName: productOfArch,
+		}
+
+		branches = append(branches, branch)
+	}
+
+	return ProductTree{
+		Xmlns:           impl.cfg.Xmlns,
+		OpenEulerBranch: branches,
+	}
+}
+
+func (impl bulletinImpl) vulnerability(sb *domain.SecurityBulletin) []Vulnerability {
+	var vs []Vulnerability
+
+	for k, defect := range sb.Defects {
+		var idOfStatus []ProductId
+		for _, v := range defect.AffectedVersion {
+			idOfStatus = append(idOfStatus, ProductId{
+				ProductId: v.String(),
+			})
+		}
+
+		vul := Vulnerability{
+			Ordinal: strconv.Itoa(k + 1),
+			Xmlns:   impl.cfg.Xmlns,
+			CveNotes: CveNotes{
+				CveNote: CveNote{
+					Title:   "Vulnerability Description",
+					Type:    "General",
+					Ordinal: "1",
+					XmlLang: "en",
+					Note:    defect.Description,
+				},
+			},
+			ReleaseDate: sb.Date,
+			Bug:         defect.Issue.Number,
+			ProductStatuses: ProductStatuses{
+				Status: Status{
+					Type:      "Fixed",
+					ProductId: idOfStatus,
+				},
+			},
+			Threats: Threats{
+				Threat: Threat{
+					Type:        "Impact",
+					Description: defect.SeverityLevel.String(),
+				},
+			},
+			Remediations: Remediations{
+				Remediation: Remediation{
+					Type:        "Vendor Fix",
+					Description: fmt.Sprintf("%s bug update", sb.Component),
+					Date:        sb.Date,
+					Url:         impl.cfg.SecurityBulletinUrlPrefix + sb.Identification,
+				},
+			},
+		}
+
+		vs = append(vs, vul)
+	}
+
+	return vs
+}
