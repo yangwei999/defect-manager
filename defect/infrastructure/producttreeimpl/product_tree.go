@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/opensourceways/robot-gitee-lib/client"
@@ -32,6 +33,8 @@ type ProductTreeImpl struct {
 
 	rpmCache            map[string][]byte
 	rpmOfComponentCache map[string]string
+
+	lock sync.Mutex
 }
 
 func (impl *ProductTreeImpl) CleanCache() {
@@ -40,9 +43,11 @@ func (impl *ProductTreeImpl) CleanCache() {
 }
 
 func (impl *ProductTreeImpl) GetTree(component string, versions []dp.SystemVersion) (domain.ProductTree, error) {
+	impl.lock.Lock()
 	if len(impl.rpmCache) == 0 {
 		impl.initRPMCache()
 	}
+	impl.lock.Unlock()
 
 	affectedRPM := make(map[string]string)
 	for _, v := range versions {
