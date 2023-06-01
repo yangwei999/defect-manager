@@ -35,6 +35,7 @@ type productTreeImpl struct {
 	rpmOfComponentCache map[string]string
 
 	lock sync.Mutex
+	wg   sync.WaitGroup
 }
 
 func (impl *productTreeImpl) CleanCache() {
@@ -43,11 +44,7 @@ func (impl *productTreeImpl) CleanCache() {
 }
 
 func (impl *productTreeImpl) GetTree(component string, versions []dp.SystemVersion) (domain.ProductTree, error) {
-	impl.lock.Lock()
-	if len(impl.rpmCache) == 0 {
-		impl.initRPMCache()
-	}
-	impl.lock.Unlock()
+	impl.initRPMCache()
 
 	affectedRPM := make(map[string]string)
 	for _, v := range versions {
@@ -93,31 +90,48 @@ func (impl *productTreeImpl) parseRPM(component, version string) string {
 }
 
 func (impl *productTreeImpl) initRPMCache() {
+	impl.lock.Lock()
+	if len(impl.rpmCache) == len(dp.MaintainVersion) {
+		return
+	}
+	defer impl.lock.Unlock()
+
 	for version := range dp.MaintainVersion {
-		for {
-			content, err := impl.cli.GetPathContent(
-				impl.cfg.PkgRPM.Org,
-				impl.cfg.PkgRPM.Repo,
-				fmt.Sprintf("%s%s.csv", impl.cfg.PkgRPM.PathPrefix, version),
-				impl.cfg.PkgRPM.Branch,
-			)
-			if err != nil {
-				logrus.Errorf("get content of %s error %s", version, err.Error())
-				time.Sleep(time.Second * 3)
-				continue
-			}
+		v := version.String()
+		impl.wg.Add(1)
+		go func() {
+			impl.fetchRPMData(v)
+			impl.wg.Done()
+		}()
+	}
 
-			decodeContent, err := base64.StdEncoding.DecodeString(content.Content)
-			if err != nil {
-				logrus.Errorf("base64decode content of %s error %s", version, err.Error())
-				time.Sleep(time.Second * 3)
-				continue
-			}
+	impl.wg.Wait()
+}
 
-			impl.rpmCache[version.String()] = decodeContent
-
-			break
+func (impl *productTreeImpl) fetchRPMData(version string) {
+	for {
+		content, err := impl.cli.GetPathContent(
+			impl.cfg.PkgRPM.Org,
+			impl.cfg.PkgRPM.Repo,
+			fmt.Sprintf("%s%s.csv", impl.cfg.PkgRPM.PathPrefix, version),
+			impl.cfg.PkgRPM.Branch,
+		)
+		if err != nil {
+			logrus.Errorf("get content of %s error %s", version, err.Error())
+			time.Sleep(time.Second * 3)
+			continue
 		}
+
+		decodeContent, err := base64.StdEncoding.DecodeString(content.Content)
+		if err != nil {
+			logrus.Errorf("base64decode content of %s error %s", version, err.Error())
+			time.Sleep(time.Second * 3)
+			continue
+		}
+
+		impl.rpmCache[version] = decodeContent
+
+		break
 	}
 }
 
