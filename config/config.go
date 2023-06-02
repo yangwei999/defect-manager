@@ -5,6 +5,7 @@ import (
 
 	"github.com/opensourceways/defect-manager/common/infrastructure/postgres"
 	"github.com/opensourceways/defect-manager/defect/infrastructure/bulletinimpl"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/obsimpl"
 	"github.com/opensourceways/defect-manager/defect/infrastructure/producttreeimpl"
 	"github.com/opensourceways/defect-manager/defect/infrastructure/repositoryimpl"
 )
@@ -34,6 +35,7 @@ type configSetDefault interface {
 type Config struct {
 	Postgres    postgres.Config        `json:"postgres"     required:"true"`
 	ProductTree producttreeimpl.Config `json:"product_tree" required:"true"`
+	Obs         obsimpl.Config         `json:"obs"          required:"true"`
 	Bulletin    bulletinimpl.Config    `json:"bulletin"`
 
 	repositoryimpl.Config
@@ -43,6 +45,7 @@ func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
 		&cfg.Postgres,
 		&cfg.ProductTree,
+		&cfg.Obs,
 		&cfg.Bulletin,
 	}
 }

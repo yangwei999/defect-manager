@@ -1,5 +1,5 @@
 package obs
 
 type OBS interface {
-	Upload([]byte) error
+	Upload(fileName string, data []byte) error
 }

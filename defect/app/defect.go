@@ -107,7 +107,7 @@ func (d defectService) GenerateBulletins(cmd CmdToGenerateBulletins) error {
 	for _, b := range bulletins {
 		b.ProductTree, err = d.productTree.GetTree(b.Component, b.AffectedVersion)
 		if err != nil {
-			logrus.Errorf("component %s, get productTree error: %s", b.Component, err.Error(), )
+			logrus.Errorf("component %s, get productTree error: %s", b.Component, err.Error())
 
 			continue
 		}
@@ -122,7 +122,8 @@ func (d defectService) GenerateBulletins(cmd CmdToGenerateBulletins) error {
 			continue
 		}
 
-		if err := d.obs.Upload(xmlData); err != nil {
+		fileName := fmt.Sprintf("%s.xml", b.Identification)
+		if err := d.obs.Upload(fileName, xmlData); err != nil {
 			logrus.Errorf("component: %s, upload to obs error: %s", b.Component, err.Error())
 
 			continue
