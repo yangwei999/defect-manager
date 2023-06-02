@@ -47,7 +47,7 @@ func (impl *productTreeImpl) InitCache() {
 	impl.initRPMCache()
 }
 
-//CleanCache use atomic to avoid clearing when other tasks are being performed
+//CleanCache use atomic to avoid cleaning when other tasks are being performed
 func (impl *productTreeImpl) CleanCache() {
 	atomic.AddInt64(&impl.taskCount, -1)
 	if atomic.LoadInt64(&impl.taskCount) == 0 {

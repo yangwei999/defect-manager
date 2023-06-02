@@ -21,7 +21,9 @@ type defectImpl struct {
 
 func NewDefect(cfg *Config) (repository.DefectRepository, error) {
 	defectTableName = cfg.Table.Defect
+
 	impl := defectImpl{postgres.NewDBTable(cfg.Table.Defect)}
+
 	err := impl.db.AutoMigrate(defectDO{})
 
 	return impl, err

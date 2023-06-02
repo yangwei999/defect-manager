@@ -17,3 +17,7 @@ func ToDate(n int64) string {
 func Date() string {
 	return ToDate(Now())
 }
+
+func Year() int {
+	return time.Now().Year()
+}

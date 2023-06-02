@@ -202,14 +202,6 @@ func (t DbTable) IsRowExists(err error) bool {
 	return errors.Is(err, errRowExists)
 }
 
-func (t DbTable) CreateTable(v interface{}) error {
-	if !db.Migrator().HasTable(v) {
-		return db.Migrator().CreateTable(v)
-	}
-
-	return nil
-}
-
 func (t DbTable) AutoMigrate(dst interface{}) error {
 	return db.AutoMigrate(&dst)
 }

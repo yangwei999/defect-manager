@@ -7,6 +7,6 @@ import (
 
 type ProductTree interface {
 	InitCache()
-	GetTree(component string, version []dp.SystemVersion) (domain.ProductTree, error)
 	CleanCache()
+	GetTree(component string, version []dp.SystemVersion) (domain.ProductTree, error)
 }

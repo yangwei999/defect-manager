@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/opensourceways/defect-manager/defect/domain"
+	"github.com/opensourceways/defect-manager/utils"
 )
 
 func NewBulletin(c *Config) bulletinImpl {
@@ -229,7 +230,7 @@ func (impl bulletinImpl) vulnerability(sb *domain.SecurityBulletin) []Vulnerabil
 				},
 			},
 			ReleaseDate: sb.Date,
-			Bug:         defect.Issue.Number,
+			Bug:         fmt.Sprintf("BUG-%d-%s", utils.Year(), defect.Issue.Number),
 			ProductStatuses: ProductStatuses{
 				Status: Status{
 					Type:      "Fixed",
