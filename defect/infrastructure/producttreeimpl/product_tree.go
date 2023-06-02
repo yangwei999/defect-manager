@@ -121,7 +121,17 @@ func (impl *productTreeImpl) initRPMCache() {
 }
 
 func (impl *productTreeImpl) fetchRPMData(version string) {
+	count := 0
+	maxCount := 10
+	interval := time.Second * 3
+
 	for {
+		if count > maxCount {
+			logrus.Errorf("fetch rpm data of %s failed after %d times", version, maxCount)
+			break
+		}
+		count++
+
 		content, err := impl.cli.GetPathContent(
 			impl.cfg.PkgRPM.Org,
 			impl.cfg.PkgRPM.Repo,
@@ -130,14 +140,14 @@ func (impl *productTreeImpl) fetchRPMData(version string) {
 		)
 		if err != nil {
 			logrus.Errorf("get content of %s error %s", version, err.Error())
-			time.Sleep(time.Second * 3)
+			time.Sleep(interval)
 			continue
 		}
 
 		decodeContent, err := base64.StdEncoding.DecodeString(content.Content)
 		if err != nil {
 			logrus.Errorf("base64decode content of %s error %s", version, err.Error())
-			time.Sleep(time.Second * 3)
+			time.Sleep(interval)
 			continue
 		}
 
