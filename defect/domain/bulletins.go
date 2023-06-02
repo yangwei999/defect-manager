@@ -13,7 +13,7 @@ type SecurityBulletin struct {
 	Defects         Defects
 }
 
-type ProductTree = map[string][]Product
+type ProductTree = map[dp.Arch][]Product
 
 type Product struct {
 	ID       string

@@ -192,7 +192,7 @@ func (impl bulletinImpl) productTree(sb *domain.SecurityBulletin) ProductTree {
 
 		branch := OpenEulerBranch{
 			Type:            "Package Arch",
-			Name:            arch,
+			Name:            arch.String(),
 			FullProductName: productOfArch,
 		}
 

@@ -7,6 +7,7 @@ import (
 	"io"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/opensourceways/robot-gitee-lib/client"
@@ -24,6 +25,7 @@ func NewProductTree(cfg *Config) *productTreeImpl {
 		cfg:                 cfg,
 		rpmCache:            make(map[string][]byte),
 		rpmOfComponentCache: make(map[string]string),
+		taskCount:           0,
 	}
 }
 
@@ -34,18 +36,27 @@ type productTreeImpl struct {
 	rpmCache            map[string][]byte
 	rpmOfComponentCache map[string]string
 
-	lock sync.Mutex
-	wg   sync.WaitGroup
+	lock      sync.Mutex
+	wg        sync.WaitGroup
+	taskCount int64
 }
 
+func (impl *productTreeImpl) InitCache() {
+	atomic.AddInt64(&impl.taskCount, 1)
+
+	impl.initRPMCache()
+}
+
+//CleanCache use atomic to avoid clearing when other tasks are being performed
 func (impl *productTreeImpl) CleanCache() {
-	impl.rpmCache = make(map[string][]byte)
-	impl.rpmOfComponentCache = make(map[string]string)
+	atomic.AddInt64(&impl.taskCount, -1)
+	if atomic.LoadInt64(&impl.taskCount) == 0 {
+		impl.rpmCache = make(map[string][]byte)
+		impl.rpmOfComponentCache = make(map[string]string)
+	}
 }
 
 func (impl *productTreeImpl) GetTree(component string, versions []dp.SystemVersion) (domain.ProductTree, error) {
-	impl.initRPMCache()
-
 	affectedRPM := make(map[string]string)
 	for _, v := range versions {
 		key := fmt.Sprintf("%s_%s", component, v.String())
@@ -90,11 +101,12 @@ func (impl *productTreeImpl) parseRPM(component, version string) string {
 }
 
 func (impl *productTreeImpl) initRPMCache() {
+	// use lock to avoid duplicate execution
 	impl.lock.Lock()
+	defer impl.lock.Unlock()
 	if len(impl.rpmCache) == len(dp.MaintainVersion) {
 		return
 	}
-	defer impl.lock.Unlock()
 
 	for version := range dp.MaintainVersion {
 		v := version.String()
@@ -136,7 +148,7 @@ func (impl *productTreeImpl) fetchRPMData(version string) {
 }
 
 func (impl *productTreeImpl) buildTree(affectedRPM map[string]string) domain.ProductTree {
-	tree := make(map[string][]domain.Product)
+	tree := make(map[dp.Arch][]domain.Product)
 	for version, rpms := range affectedRPM {
 
 		rpmSlice := strings.Fields(rpms)
@@ -151,7 +163,8 @@ func (impl *productTreeImpl) buildTree(affectedRPM map[string]string) domain.Pro
 				FullName: rpm,
 			}
 
-			tree[arch] = append(tree[arch], product)
+			dpArch := dp.NewArch(arch)
+			tree[dpArch] = append(tree[dpArch], product)
 		}
 	}
 

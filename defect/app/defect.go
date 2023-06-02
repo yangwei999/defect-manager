@@ -76,6 +76,7 @@ func (d defectService) GenerateBulletins(cmd CmdToGenerateBulletins) error {
 
 	bulletins := defects.GenerateBulletins()
 
+	d.productTree.InitCache()
 	defer d.productTree.CleanCache()
 	for _, b := range bulletins {
 		b.ProductTree, err = d.productTree.GetTree(b.Component, b.AffectedVersion)

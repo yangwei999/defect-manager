@@ -55,8 +55,8 @@ func (ds Defects) groupByComponent() map[string]DefectsByComponent {
 }
 
 //GenerateBulletins DefectsByComponent is a component-differentiated set of defects,
-////Bulletins are consolidated into one when all issues of a component affect all versions currently maintained,
-////otherwise they are split into multiple bulletins by version
+//Bulletins are consolidated into one when all issues of a component affect all versions currently maintained,
+//otherwise they are split into multiple bulletins by version
 func (ds Defects) GenerateBulletins() []SecurityBulletin {
 	var securityBulletins []SecurityBulletin
 
