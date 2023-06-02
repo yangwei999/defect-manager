@@ -21,7 +21,6 @@ type bulletinImpl struct {
 }
 
 func (impl bulletinImpl) Generate(sb *domain.SecurityBulletin) ([]byte, error) {
-
 	data := CvrfBA{
 		Xmlns:              impl.cfg.Xmlns,
 		XmlnsCvrf:          impl.cfg.XmlnsCvrf,
@@ -35,7 +34,7 @@ func (impl bulletinImpl) Generate(sb *domain.SecurityBulletin) ([]byte, error) {
 		Vulnerability:      impl.vulnerability(sb),
 	}
 
-	return xml.Marshal(data)
+	return xml.MarshalIndent(data, "", "\t")
 }
 
 func (impl bulletinImpl) joinVersion(sb *domain.SecurityBulletin) string {
@@ -91,7 +90,7 @@ func (impl bulletinImpl) documentTracking(sb *domain.SecurityBulletin) DocumentT
 func (impl bulletinImpl) documentNotes(sb *domain.SecurityBulletin) DocumentNotes {
 	var description string
 	for _, defect := range sb.Defects {
-		description += fmt.Sprintf("%s(%s)\r\n\r\n", defect.Description, defect.Issue.Number)
+		description += fmt.Sprintf("%s(%s)\r\n\r\n", defect.Description, impl.bugID(defect.Issue.Number))
 	}
 	description = strings.Trim(description, "\r\n\r\n")
 
@@ -230,7 +229,7 @@ func (impl bulletinImpl) vulnerability(sb *domain.SecurityBulletin) []Vulnerabil
 				},
 			},
 			ReleaseDate: sb.Date,
-			Bug:         fmt.Sprintf("BUG-%d-%s", utils.Year(), defect.Issue.Number),
+			Bug:         impl.bugID(defect.Issue.Number),
 			ProductStatuses: ProductStatuses{
 				Status: Status{
 					Type:      "Fixed",
@@ -257,4 +256,8 @@ func (impl bulletinImpl) vulnerability(sb *domain.SecurityBulletin) []Vulnerabil
 	}
 
 	return vs
+}
+
+func (impl bulletinImpl) bugID(issueNumber string) string {
+	return fmt.Sprintf("BUG-%d-%s", utils.Year(), issueNumber)
 }

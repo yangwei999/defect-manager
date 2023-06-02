@@ -25,11 +25,15 @@ func NewDefectService(
 	r repository.DefectRepository,
 	t producttree.ProductTree,
 	b bulletin.Bulletin,
+	be backend.CveBackend,
+	o obs.OBS,
 ) *defectService {
 	return &defectService{
 		repo:        r,
 		productTree: t,
 		bulletin:    b,
+		backend:     be,
+		obs:         o,
 	}
 }
 
