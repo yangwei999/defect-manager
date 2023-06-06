@@ -25,12 +25,13 @@ type SystemVersion interface {
 }
 
 func NewSystemVersion(s string) (SystemVersion, error) {
-	v := systemVersion(s)
-	if !MaintainVersion[v] {
+	// MaintainVersion is not used for validation because
+	// there is an error reading old data from the database when maintainVersion changes
+	if s == "" {
 		return nil, errors.New("invalid system version")
 	}
 
-	return v, nil
+	return systemVersion(s), nil
 }
 
 func (s systemVersion) String() string {
