@@ -13,20 +13,28 @@ const (
 	fieldCreatedAt = "created_at"
 )
 
+var instance repository.DefectRepository
+
 var defectTableName string
 
-type defectImpl struct {
-	db dbimpl
-}
-
-func NewDefect(cfg *Config) (repository.DefectRepository, error) {
+func Init(cfg *Config) error {
 	defectTableName = cfg.Table.Defect
 
 	impl := defectImpl{postgres.NewDBTable(cfg.Table.Defect)}
 
+	instance = impl
+
 	err := impl.db.AutoMigrate(defectDO{})
 
-	return impl, err
+	return err
+}
+
+func Instance() repository.DefectRepository {
+	return instance
+}
+
+type defectImpl struct {
+	db dbimpl
 }
 
 func (impl defectImpl) HasDefect(defect *domain.Defect) (bool, error) {

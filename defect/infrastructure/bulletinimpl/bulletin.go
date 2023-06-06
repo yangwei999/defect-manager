@@ -10,10 +10,16 @@ import (
 	"github.com/opensourceways/defect-manager/utils"
 )
 
-func NewBulletin(c *Config) bulletinImpl {
-	return bulletinImpl{
-		cfg: c,
+var instance *bulletinImpl
+
+func Init(cfg *Config) {
+	instance = &bulletinImpl{
+		cfg: cfg,
 	}
+}
+
+func Instance() *bulletinImpl {
+	return instance
 }
 
 type bulletinImpl struct {

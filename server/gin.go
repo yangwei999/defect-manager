@@ -12,6 +12,13 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/opensourceways/defect-manager/config"
+	"github.com/opensourceways/defect-manager/defect/app"
+	"github.com/opensourceways/defect-manager/defect/controller"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/backendimpl"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/bulletinimpl"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/obsimpl"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/producttreeimpl"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/repositoryimpl"
 	"github.com/opensourceways/defect-manager/docs"
 )
 
@@ -44,7 +51,17 @@ func setRouter(engine *gin.Engine, cfg *config.Config) {
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }
 
-func setApiV1(v1 *gin.RouterGroup, cfg *config.Config) {}
+func setApiV1(v1 *gin.RouterGroup, cfg *config.Config) {
+	controller.AddRouteForDefectController(
+		v1, app.NewDefectService(
+			repositoryimpl.Instance(),
+			producttreeimpl.Instance(),
+			bulletinimpl.Instance(),
+			backendimpl.Instance(),
+			obsimpl.Instance(),
+		),
+	)
+}
 
 func logRequest() gin.HandlerFunc {
 	return func(c *gin.Context) {

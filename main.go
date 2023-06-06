@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	"github.com/opensourceways/server-common-lib/logrusutil"
@@ -11,9 +10,12 @@ import (
 
 	"github.com/opensourceways/defect-manager/common/infrastructure/postgres"
 	"github.com/opensourceways/defect-manager/config"
-	"github.com/opensourceways/defect-manager/defect/domain"
-	"github.com/opensourceways/defect-manager/defect/domain/dp"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/backendimpl"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/bulletinimpl"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/obsimpl"
+	"github.com/opensourceways/defect-manager/defect/infrastructure/producttreeimpl"
 	"github.com/opensourceways/defect-manager/defect/infrastructure/repositoryimpl"
+	"github.com/opensourceways/defect-manager/server"
 )
 
 type options struct {
@@ -71,44 +73,24 @@ func main() {
 		return
 	}
 
-	pg, err := repositoryimpl.NewDefect(&cfg.Config)
-	if err != nil {
-		logrus.Errorf("init defect failed, err:%s", err.Error())
+	if err = obsimpl.Init(&cfg.Obs); err != nil {
+		logrus.Errorf("init obs failed, err:%s", err.Error())
 
 		return
 	}
 
-	version, _ := dp.NewSystemVersion("openEuler-22.03")
-	url, _ := dp.NewURL("https://www.qq.com")
-	level, _ := dp.NewSeverityLevel("Critical")
+	if err = repositoryimpl.Init(&cfg.Config); err != nil {
+		logrus.Errorf("init repository failed, err:%s", err.Error())
 
-	status, _ := dp.NewIssueStatus("open")
-
-	d := domain.Defect{
-		Kernel:          "i am kernel",
-		Component:       "kernel",
-		SystemVersion:   version,
-		Description:     "i am description",
-		ReferenceURL:    url,
-		GuidanceURL:     url,
-		Influence:       "i am influence",
-		SeverityLevel:   level,
-		AffectedVersion: []dp.SystemVersion{version, version},
-		ABI:             "i am abi",
-		Issue: domain.Issue{
-			Number: "FKJ94",
-			Org:    "openeuler",
-			Repo:   "community",
-			Status: status,
-		},
+		return
 	}
 
-	//t, _ := time.Parse("2006-01-02", "2023-05-29")
-	//opt := repository.OptToFindDefects{BeginTime: t}
-	err = pg.SaveDefect(&d)
-	//_, err = pg.FindDefects(opt)
-	if err != nil {
-		fmt.Println(err)
-	}
+	backendimpl.Init(&cfg.Backend)
 
+	bulletinimpl.Init(&cfg.Bulletin)
+
+	producttreeimpl.Init(&cfg.ProductTree)
+
+	// run
+	server.StartWebServer(o.service.Port, o.service.GracePeriod, cfg)
 }

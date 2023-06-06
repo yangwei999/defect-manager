@@ -2,10 +2,16 @@ package backendimpl
 
 import "github.com/opensourceways/server-common-lib/utils"
 
-func NewBackend(cfg *Config) backendImpl {
-	return backendImpl{
+var instance *backendImpl
+
+func Init(cfg *Config) {
+	instance = &backendImpl{
 		cli: utils.NewHttpClient(3),
 	}
+}
+
+func Instance() *backendImpl {
+	return instance
 }
 
 type backendImpl struct {

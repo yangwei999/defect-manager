@@ -9,16 +9,24 @@ import (
 	"github.com/opensourceways/defect-manager/utils"
 )
 
-func NewObs(cfg *Config) (obsImpl, error) {
+var instance *obsImpl
+
+func Init(cfg *Config) error {
 	cli, err := obs.New(cfg.AccessKey, cfg.SecretKey, cfg.Endpoint)
 	if err != nil {
-		return obsImpl{}, err
+		return err
 	}
 
-	return obsImpl{
+	instance = &obsImpl{
 		cfg: cfg,
 		cli: cli,
-	}, nil
+	}
+
+	return nil
+}
+
+func Instance() *obsImpl {
+	return instance
 }
 
 type obsImpl struct {

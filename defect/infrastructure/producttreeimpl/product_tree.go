@@ -17,6 +17,24 @@ import (
 	"github.com/opensourceways/defect-manager/defect/domain/dp"
 )
 
+var instance *productTreeImpl
+
+func Init(cfg *Config) {
+	instance = &productTreeImpl{
+		cli: client.NewClient(func() []byte {
+			return []byte(cfg.Token)
+		}),
+		cfg:                 cfg,
+		rpmCache:            make(map[string][]byte),
+		rpmOfComponentCache: make(map[string]string),
+		taskCount:           0,
+	}
+}
+
+func Instance() *productTreeImpl {
+	return instance
+}
+
 func NewProductTree(cfg *Config) *productTreeImpl {
 	return &productTreeImpl{
 		cli: client.NewClient(func() []byte {
