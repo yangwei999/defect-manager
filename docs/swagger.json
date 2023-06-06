@@ -3,5 +3,123 @@
     "info": {
         "contact": {}
     },
-    "paths": {}
+    "paths": {
+        "/v1/defect": {
+            "post": {
+                "description": "add or update a defect",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Defect"
+                ],
+                "summary": "add or update a defect",
+                "parameters": [
+                    {
+                        "description": "body of a defect",
+                        "name": "param",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.defectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "controller.ResponseData": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "data": {},
+                "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.defectRequest": {
+            "type": "object",
+            "required": [
+                "abi",
+                "affected_version",
+                "component",
+                "description",
+                "guidance_url",
+                "influence",
+                "issue_number",
+                "issue_org",
+                "issue_repo",
+                "issue_status",
+                "kernel",
+                "reference_url",
+                "severity_level",
+                "system_version"
+            ],
+            "properties": {
+                "abi": {
+                    "type": "string"
+                },
+                "affected_version": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "component": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "guidance_url": {
+                    "type": "string"
+                },
+                "influence": {
+                    "type": "string"
+                },
+                "issue_number": {
+                    "type": "string"
+                },
+                "issue_org": {
+                    "type": "string"
+                },
+                "issue_repo": {
+                    "type": "string"
+                },
+                "issue_status": {
+                    "type": "string"
+                },
+                "kernel": {
+                    "type": "string"
+                },
+                "reference_url": {
+                    "type": "string"
+                },
+                "severity_level": {
+                    "type": "string"
+                },
+                "system_version": {
+                    "type": "string"
+                }
+            }
+        }
+    }
 }
