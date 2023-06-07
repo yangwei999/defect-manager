@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -17,8 +18,8 @@ import (
 
 type DefectService interface {
 	SaveDefects(CmdToSaveDefect) error
-	CollectDefects(CmdToCollectDefects) ([]CollectDefectsDTO, error)
-	GenerateBulletins(CmdToGenerateBulletins) error
+	CollectDefects(time time.Time) ([]CollectDefectsDTO, error)
+	GenerateBulletins([]string) error
 }
 
 func NewDefectService(
@@ -58,10 +59,9 @@ func (d defectService) SaveDefects(cmd CmdToSaveDefect) error {
 	}
 }
 
-func (d defectService) CollectDefects(cmd CmdToCollectDefects) (dto []CollectDefectsDTO, err error) {
+func (d defectService) CollectDefects(date time.Time) (dto []CollectDefectsDTO, err error) {
 	opt := repository.OptToFindDefects{
-		BeginTime: cmd.BeginTime,
-		Org:       cmd.Org,
+		BeginTime: date,
 		Status:    dp.IssueStatusClosed,
 	}
 
@@ -87,10 +87,9 @@ func (d defectService) CollectDefects(cmd CmdToCollectDefects) (dto []CollectDef
 	return
 }
 
-func (d defectService) GenerateBulletins(cmd CmdToGenerateBulletins) error {
+func (d defectService) GenerateBulletins(number []string) error {
 	opt := repository.OptToFindDefects{
-		Org:    cmd.Org,
-		Number: cmd.Number,
+		Number: number,
 	}
 
 	defects, err := d.repo.FindDefects(opt)

@@ -1,4 +1,17 @@
 definitions:
+  app.CollectDefectsDTO:
+    properties:
+      component:
+        type: string
+      issue_id:
+        type: string
+      score:
+        type: string
+      status:
+        type: string
+      version:
+        type: string
+    type: object
   controller.ResponseData:
     properties:
       code:
@@ -59,6 +72,30 @@ info:
   contact: {}
 paths:
   /v1/defect:
+    get:
+      consumes:
+      - application/json
+      description: collect information of some defects
+      parameters:
+      - description: collect defects after the date
+        in: query
+        name: date
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/app.CollectDefectsDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: collect information of some defects
+      tags:
+      - Defect
     post:
       consumes:
       - application/json
@@ -80,6 +117,30 @@ paths:
           schema:
             $ref: '#/definitions/controller.ResponseData'
       summary: add or update a defect
+      tags:
+      - Defect
+  /v1/defect/bulletin:
+    post:
+      consumes:
+      - application/json
+      description: generate security bulletin for some defects
+      parameters:
+      - description: body of some issue number
+        in: body
+        name: param
+        required: true
+        schema:
+          $ref: '#/definitions/controller.defectRequest'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: generate security bulletin for some defects
       tags:
       - Defect
 swagger: "2.0"

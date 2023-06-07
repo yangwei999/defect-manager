@@ -88,3 +88,7 @@ func (r defectRequest) toAffectedVersion() (dpv []dp.SystemVersion, err error) {
 
 	return
 }
+
+type bulletinRequest struct {
+	IssueNumber []string `json:"issue_number" binding:"required"`
+}

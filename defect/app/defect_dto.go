@@ -1,22 +1,10 @@
 package app
 
 import (
-	"time"
-
 	"github.com/opensourceways/defect-manager/defect/domain"
 )
 
 type CmdToSaveDefect = domain.Defect
-
-type CmdToCollectDefects struct {
-	BeginTime time.Time
-	Org       string
-}
-
-type CmdToGenerateBulletins struct {
-	Number []string
-	Org    string
-}
 
 type CollectDefectsDTO struct {
 	Number    string `json:"issue_id"`

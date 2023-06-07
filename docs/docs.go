@@ -16,6 +16,42 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/v1/defect": {
+            "get": {
+                "description": "collect information of some defects",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Defect"
+                ],
+                "summary": "collect information of some defects",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "collect defects after the date",
+                        "name": "date",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/app.CollectDefectsDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "add or update a defect",
                 "consumes": [
@@ -51,9 +87,66 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/v1/defect/bulletin": {
+            "post": {
+                "description": "generate security bulletin for some defects",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Defect"
+                ],
+                "summary": "generate security bulletin for some defects",
+                "parameters": [
+                    {
+                        "description": "body of some issue number",
+                        "name": "param",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.defectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "app.CollectDefectsDTO": {
+            "type": "object",
+            "properties": {
+                "component": {
+                    "type": "string"
+                },
+                "issue_id": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "controller.ResponseData": {
             "type": "object",
             "properties": {
