@@ -85,7 +85,7 @@ func (ctl DefectController) Collect(ctx *gin.Context) {
 // @Description generate security bulletin for some defects
 // @Tags  Defect
 // @Accept json
-// @Param	param  body	 defectRequest	 true	"body of some issue number"
+// @Param	param  body	 bulletinRequest	 true	"body of some issue number"
 // @Success 201 {object} ResponseData
 // @Failure 400 {object} ResponseData
 // @Router /v1/defect/bulletin [post]
@@ -97,8 +97,6 @@ func (ctl DefectController) GenerateBulletin(ctx *gin.Context) {
 		return
 	}
 
-	commonctl.SendRespOfPost(ctx, "Processing: Data is being prepared, please wait patiently\n")
-
 	go func() {
 		logrus.Infof("generate bulletin processing of %v", req.IssueNumber)
 
@@ -109,4 +107,5 @@ func (ctl DefectController) GenerateBulletin(ctx *gin.Context) {
 		}
 	}()
 
+	commonctl.SendRespOfPost(ctx, "Processing: Data is being prepared, please wait patiently\n")
 }
