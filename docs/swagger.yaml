@@ -20,6 +20,15 @@ definitions:
       msg:
         type: string
     type: object
+  controller.bulletinRequest:
+    properties:
+      issue_number:
+        items:
+          type: string
+        type: array
+    required:
+    - issue_number
+    type: object
   controller.defectRequest:
     properties:
       abi:
@@ -130,7 +139,7 @@ paths:
         name: param
         required: true
         schema:
-          $ref: '#/definitions/controller.defectRequest'
+          $ref: '#/definitions/controller.bulletinRequest'
       responses:
         "201":
           description: Created

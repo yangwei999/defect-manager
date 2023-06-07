@@ -105,7 +105,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.defectRequest"
+                            "$ref": "#/definitions/controller.bulletinRequest"
                         }
                     }
                 ],
@@ -156,6 +156,20 @@ const docTemplate = `{
                 "data": {},
                 "msg": {
                     "type": "string"
+                }
+            }
+        },
+        "controller.bulletinRequest": {
+            "type": "object",
+            "required": [
+                "issue_number"
+            ],
+            "properties": {
+                "issue_number": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
