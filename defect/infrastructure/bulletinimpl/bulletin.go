@@ -143,7 +143,9 @@ func (impl bulletinImpl) documentReferences(sb *domain.SecurityBulletin) Documen
 
 	var defectUrl []CveUrl
 	for _, defect := range sb.Defects {
-		url := impl.cfg.DefectUrlPrefix + defect.Issue.Number
+		url := fmt.Sprintf("https://gitee.com/%s/%s/issues/%s",
+			defect.Issue.Org, defect.Issue.Repo, defect.Issue.Number,
+		)
 		defectUrl = append(defectUrl, CveUrl{Url: url})
 	}
 
