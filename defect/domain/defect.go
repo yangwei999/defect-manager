@@ -44,15 +44,6 @@ func (d Defect) isAffectVersion(version dp.SystemVersion) bool {
 	return false
 }
 
-func (ds Defects) AllIssueNumber() []string {
-	var number []string
-	for _, d := range ds {
-		number = append(number, d.Issue.Number)
-	}
-
-	return number
-}
-
 //GroupByComponent group defects by component
 func (ds Defects) groupByComponent() map[string]DefectsByComponent {
 	group := make(map[string]DefectsByComponent)

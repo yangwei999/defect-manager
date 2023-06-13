@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/opensourceways/defect-manager/defect/domain"
 	"github.com/opensourceways/defect-manager/defect/domain/backend"
@@ -70,14 +71,15 @@ func (d defectService) CollectDefects(date time.Time) (dto []CollectDefectsDTO, 
 		return
 	}
 
-	publishedNum, err := d.backend.IsDefectPublished(defects.AllIssueNumber())
+	publishedNum, err := d.backend.PublishedDefects()
 	if err != nil {
 		return
 	}
 
 	var unpublishedDefects domain.Defects
+	ps := sets.NewString(publishedNum...)
 	for _, defect := range defects {
-		if _, ok := publishedNum[defect.Issue.Number]; !ok {
+		if _, ok := ps[defect.Issue.Number]; !ok {
 			unpublishedDefects = append(unpublishedDefects, defect)
 		}
 	}
