@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/opensourceways/defect-manager/defect/domain"
+	"github.com/opensourceways/defect-manager/defect/domain/dp"
 	"github.com/opensourceways/defect-manager/utils"
 )
 
@@ -95,10 +96,17 @@ func (impl bulletinImpl) documentTracking(sb *domain.SecurityBulletin) DocumentT
 
 func (impl bulletinImpl) documentNotes(sb *domain.SecurityBulletin) DocumentNotes {
 	var description string
+	var highestLevelIndex int
+
 	for _, defect := range sb.Defects {
 		description += fmt.Sprintf("%s(%s)\r\n\r\n", defect.Description, impl.bugID(defect.Issue.Number))
+		// Choose the highest security level in defects, as security level in bulletin
+		for k, v := range dp.SequenceSeverityLevel {
+			if v == defect.SeverityLevel.String() && k > highestLevelIndex {
+				highestLevelIndex = k
+			}
+		}
 	}
-	description = strings.Trim(description, "\r\n\r\n")
 
 	return DocumentNotes{
 		Note: []Note{
@@ -121,7 +129,14 @@ func (impl bulletinImpl) documentNotes(sb *domain.SecurityBulletin) DocumentNote
 				Type:    "General",
 				Ordinal: "3",
 				XmlLang: "en",
-				Note:    description,
+				Note:    strings.Trim(description, "\r\n\r\n"),
+			},
+			{
+				Title:   "Severity",
+				Type:    "General",
+				Ordinal: "5",
+				XmlLang: "en",
+				Note:    dp.SequenceSeverityLevel[highestLevelIndex],
 			},
 			{
 				Title:   "Affected Component",

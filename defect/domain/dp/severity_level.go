@@ -16,6 +16,8 @@ var validateSeverityLevel = map[string]bool{
 	low:      true,
 }
 
+var SequenceSeverityLevel = []string{low, moderate, high, critical}
+
 type severityLevel string
 
 func NewSeverityLevel(s string) (SeverityLevel, error) {
