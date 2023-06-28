@@ -91,6 +91,8 @@ func (impl *productTreeImpl) GetTree(component string, versions []dp.SystemVersi
 }
 
 func (impl *productTreeImpl) parseRPM(component, version string) string {
+	// content of buf, example:
+	// https://gitee.com/openeuler_latest_rpms/obs_pkg_rpms_20230517/raw/master/latest_rpm/openEuler-22.03-LTS.csv
 	buf := bytes.NewBuffer(impl.rpmCache[version])
 
 	var rpmOfComponent string
@@ -181,6 +183,7 @@ func (impl *productTreeImpl) buildTree(affectedRPM map[string]string) domain.Pro
 
 		rpmSlice := strings.Fields(rpms)
 		for _, rpm := range rpmSlice {
+			// example of rpm: zbar-0.22-4.oe2203.src.rpm
 			t := strings.Split(rpm, ".")
 			arch := t[len(t)-2]
 			productId := strings.Join(t[:len(t)-3], ".")
