@@ -67,7 +67,7 @@ func (impl backendImpl) MaxBulletinID() (maxId int, err error) {
 	}
 
 	t := strings.Split(res.Result, "-")
-
+	// todo reset id to 1000 at new year
 	return strconv.Atoi(t[len(t)-1])
 }
 
