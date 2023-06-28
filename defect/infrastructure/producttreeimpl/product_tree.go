@@ -35,18 +35,6 @@ func Instance() *productTreeImpl {
 	return instance
 }
 
-func NewProductTree(cfg *Config) *productTreeImpl {
-	return &productTreeImpl{
-		cli: client.NewClient(func() []byte {
-			return []byte(cfg.Token)
-		}),
-		cfg:                 cfg,
-		rpmCache:            make(map[string][]byte),
-		rpmOfComponentCache: make(map[string]string),
-		taskCount:           0,
-	}
-}
-
 type productTreeImpl struct {
 	cli client.Client
 	cfg *Config
