@@ -67,7 +67,7 @@ func (d defectService) CollectDefects(date time.Time) (dto []CollectDefectsDTO, 
 	}
 
 	defects, err := d.repo.FindDefects(opt)
-	if err != nil {
+	if err != nil || len(defects) == 0 {
 		return
 	}
 
