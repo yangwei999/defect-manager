@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/opensourceways/server-common-lib/utils"
+
+	localutils "github.com/opensourceways/defect-manager/utils"
 )
 
 var instance *backendImpl
@@ -67,7 +69,15 @@ func (impl backendImpl) MaxBulletinID() (maxId int, err error) {
 	}
 
 	t := strings.Split(res.Result, "-")
-	// todo reset id to 1000 at new year
+	year, err := strconv.Atoi(t[len(t)-2])
+	if err != nil {
+		return
+	}
+	// reset id to 1000 at new year
+	if year != localutils.Year() {
+		return 1000, nil
+	}
+
 	return strconv.Atoi(t[len(t)-1])
 }
 
