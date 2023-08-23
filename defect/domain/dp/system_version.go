@@ -4,26 +4,18 @@ import (
 	"errors"
 )
 
-const (
-	openeuler2003SP1 = "openEuler-20.03-LTS-SP1"
-	openeuler2003SP3 = "openEuler-20.03-LTS-SP3"
-	openeuler2203    = "openEuler-22.03-LTS"
-	openeuler2203SP1 = "openEuler-22.03-LTS-SP1"
-	openeuler2203SP2 = "openEuler-22.03-LTS-SP2"
-)
-
-var MaintainVersion = map[SystemVersion]bool{
-	systemVersion(openeuler2003SP1): true,
-	systemVersion(openeuler2003SP3): true,
-	systemVersion(openeuler2203):    true,
-	systemVersion(openeuler2203SP1): true,
-	systemVersion(openeuler2203SP2): true,
-}
+var MaintainVersion = make(map[SystemVersion]bool)
 
 type systemVersion string
 
 type SystemVersion interface {
 	String() string
+}
+
+func Init(maintainVersion []string) {
+	for _, version := range maintainVersion {
+		MaintainVersion[systemVersion(version)] = true
+	}
 }
 
 func NewSystemVersion(s string) (SystemVersion, error) {
