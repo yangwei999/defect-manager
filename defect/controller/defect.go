@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/opensourceways/server-common-lib/controller"
 	"github.com/sirupsen/logrus"
 
-	commonctl "github.com/opensourceways/defect-manager/common/controller"
 	"github.com/opensourceways/defect-manager/defect/app"
 )
 
@@ -36,15 +36,15 @@ func AddRouteForDefectController(r *gin.RouterGroup, s app.DefectService) {
 func (ctl DefectController) Collect(ctx *gin.Context) {
 	date, err := time.Parse("2006-01-02", ctx.Query("date"))
 	if err != nil {
-		commonctl.SendBadRequestBody(ctx, err)
+		controller.SendBadRequestBody(ctx, err)
 
 		return
 	}
 
 	if v, err := ctl.service.CollectDefects(date); err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		controller.SendFailedResp(ctx, "", err)
 	} else {
-		commonctl.SendRespOfGet(ctx, v)
+		controller.SendRespOfGet(ctx, v)
 	}
 }
 
@@ -60,7 +60,7 @@ func (ctl DefectController) Collect(ctx *gin.Context) {
 func (ctl DefectController) GenerateBulletin(ctx *gin.Context) {
 	var req bulletinRequest
 	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
-		commonctl.SendBadRequestBody(ctx, err)
+		controller.SendBadRequestBody(ctx, err)
 
 		return
 	}
@@ -75,5 +75,5 @@ func (ctl DefectController) GenerateBulletin(ctx *gin.Context) {
 		}
 	}()
 
-	commonctl.SendRespOfPost(ctx, "Processing: Data is being prepared, please wait patiently\n")
+	controller.SendRespOfPost(ctx, "Processing: Data is being prepared, please wait patiently\n")
 }

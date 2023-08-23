@@ -6,7 +6,7 @@ require (
 	github.com/opensourceways/go-gitee v0.0.0-20230727110719-c431ff93ba8b
 	github.com/opensourceways/kafka-lib v0.0.0-20230406092848-cefa19b4d680
 	github.com/opensourceways/robot-gitee-lib v0.0.0-20230323030221-ef1078bbd55c
-	github.com/opensourceways/server-common-lib v0.0.0-20230208064916-61fc43dfb8db
+	github.com/opensourceways/server-common-lib v0.0.0-20230823034132-4626960a94f3
 	github.com/sirupsen/logrus v1.9.0
 	golang.org/x/net v0.10.0
 	k8s.io/apimachinery v0.26.1
