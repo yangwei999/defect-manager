@@ -31,7 +31,7 @@ func AddRouteForDefectController(r *gin.RouterGroup, s app.DefectService) {
 // @Accept json
 // @Param	date  query string	 true	"collect defects after the date"
 // @Success 200 {object} []app.CollectDefectsDTO
-// @Failure 400 {object} ResponseData
+// @Failure 400 {object} string
 // @Router /v1/defect [get]
 func (ctl DefectController) Collect(ctx *gin.Context) {
 	date, err := time.Parse("2006-01-02", ctx.Query("date"))
@@ -54,8 +54,8 @@ func (ctl DefectController) Collect(ctx *gin.Context) {
 // @Tags  Defect
 // @Accept json
 // @Param	param  body	 bulletinRequest	 true	"body of some issue number"
-// @Success 201 {object} ResponseData
-// @Failure 400 {object} ResponseData
+// @Success 201 {object} string
+// @Failure 400 {object} string
 // @Router /v1/defect/bulletin [post]
 func (ctl DefectController) GenerateBulletin(ctx *gin.Context) {
 	var req bulletinRequest

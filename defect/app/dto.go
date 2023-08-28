@@ -13,15 +13,15 @@ type CollectDefectsDTO struct {
 }
 
 func ToCollectDefectsDTO(defects domain.Defects) []CollectDefectsDTO {
-	dto := make([]CollectDefectsDTO, len(defects))
-	for k, d := range defects {
-		dto[k] = CollectDefectsDTO{
+	var dto []CollectDefectsDTO
+	for _, d := range defects {
+		dto = append(dto, CollectDefectsDTO{
 			Number:    d.Issue.Number,
 			Component: d.Component,
 			Status:    d.Issue.Status.String(),
 			Score:     d.SeverityLevel.String(),
 			Version:   d.SystemVersion.String(),
-		}
+		})
 	}
 
 	return dto

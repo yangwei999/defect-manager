@@ -41,7 +41,7 @@ var (
 		itemReferenceUrl:    regexp.MustCompile(`(缺陷详情参考链接)[:：]([\s\S]*?)缺陷分析指导链接`),
 		itemGuidanceUrl:     regexp.MustCompile(`(缺陷分析指导链接)[:：]([\s\S]*?)二、缺陷分析结构反馈`),
 		itemInfluence:       regexp.MustCompile(`(影响性分析说明)[:：]([\s\S]*?)缺陷严重等级`),
-		itemSeverityLevel:   regexp.MustCompile(`(缺陷严重等级)[:：]([\s\S]*?)受影响版本排查`),
+		itemSeverityLevel:   regexp.MustCompile(`(缺陷严重等级)[:：]\s*(\w+)`),
 		itemAffectedVersion: regexp.MustCompile(`(受影响版本排查)\(受影响/不受影响\)[:：]([\s\S]*?)abi变化`),
 		itemAbi:             regexp.MustCompile(`(abi变化)\(受影响/不受影响\)[:：]([\s\S]*?)$`),
 	}
@@ -173,7 +173,7 @@ func (impl eventHandler) parseVersion(s string) ([]string, error) {
 
 	av := sets.NewString(allVersion...)
 	if !av.HasAll(impl.cfg.MaintainVersion...) {
-		return nil, fmt.Errorf("受影响版本排查/api变化与当前维护版本不一致，当前维护版本:\n%s",
+		return nil, fmt.Errorf("受影响版本排查/abi变化与当前维护版本不一致，当前维护版本:\n%s",
 			strings.Join(impl.cfg.MaintainVersion, "\n"),
 		)
 	}
