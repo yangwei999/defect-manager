@@ -104,7 +104,7 @@ func (impl eventHandler) HandleNoteEvent(e *sdk.NoteEvent) error {
 	}
 
 	issueInfo[itemAbi] = strings.Join(abi, ",")
-	err = impl.service.SaveDefect(impl.toCmd(e, issueInfo, version))
+	err = impl.service.SaveDefects(impl.toCmd(e, issueInfo, version))
 	if err == nil {
 		return commentIssue("Your issue is accepted, thank you")
 	}
@@ -143,8 +143,8 @@ func (impl eventHandler) approveCmdReplyToComment(e *sdk.NoteEvent) string {
 	return ""
 }
 
-func (impl eventHandler) toCmd(e *sdk.NoteEvent, issueInfo map[string]string, version []string) app.CmdToHandleDefect {
-	return app.CmdToHandleDefect{}
+func (impl eventHandler) toCmd(e *sdk.NoteEvent, issueInfo map[string]string, version []string) app.CmdToSaveDefect {
+	return app.CmdToSaveDefect{}
 }
 
 func (impl eventHandler) checkRelatedPR(e *sdk.NoteEvent, versions []string) error {
