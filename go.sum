@@ -197,6 +197,8 @@ github.com/opensourceways/server-common-lib v0.0.0-20230208064916-61fc43dfb8db h
 github.com/opensourceways/server-common-lib v0.0.0-20230208064916-61fc43dfb8db/go.mod h1:dQQwRnyuxQIF+E2471Qx6OpMiuTMRO9NGhV4Azduwc8=
 github.com/opensourceways/server-common-lib v0.0.0-20230823034132-4626960a94f3 h1:GtxghknSV9mzZE4yasRi+0sB5GU0RCp/bzYe1B4H77Y=
 github.com/opensourceways/server-common-lib v0.0.0-20230823034132-4626960a94f3/go.mod h1:9UIfsDiOER78GwLaD1pJmLtUe+tzUGrcrwEmyObKMPc=
+github.com/opensourceways/server-common-lib v0.0.0-20230901015529-419e747a78f9 h1:4/UfZ7YvTTIx0AFoID+U8Zlapy8z48WndZA/qOsPLuE=
+github.com/opensourceways/server-common-lib v0.0.0-20230901015529-419e747a78f9/go.mod h1:9UIfsDiOER78GwLaD1pJmLtUe+tzUGrcrwEmyObKMPc=
 github.com/pelletier/go-toml/v2 v2.0.8 h1:0ctb6s9mE31h0/lhu+J6OPmVeDxJn+kYnJc2jZR9tGQ=
 github.com/pelletier/go-toml/v2 v2.0.8/go.mod h1:vuYfssBdrU2XDZ9bYydBu6t+6a6PYNcZljzZR9VXg+4=
 github.com/pierrec/lz4/v4 v4.1.17 h1:kV4Ip+/hUBC+8T6+2EgburRtkE9ef4nbY3f4dFhGjMc=
