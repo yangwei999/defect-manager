@@ -12,6 +12,13 @@ RUN GO111MODULE=on CGO_ENABLED=0 go build -a -o defect-manager .
 
 # copy binary config and utils
 FROM openeuler/openeuler:22.03
-COPY  --from=BUILDER /go/src/github.com/opensourceways/defect-manager/defect-manager /opt/app/defect-manager
+RUN dnf -y update && \
+    dnf in -y shadow && \
+    groupadd -g 1000 defect && \
+    useradd -u 1000 -g defect -s /bin/bash -m defect
+
+USER defect
+
+COPY  --chown=defect --from=BUILDER /go/src/github.com/opensourceways/defect-manager/defect-manager /opt/app/defect-manager
 
 ENTRYPOINT ["/opt/app/defect-manager"]
