@@ -13,6 +13,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/opensourceways/defect-manager/defect/app"
+	"github.com/opensourceways/defect-manager/defect/domain"
+	"github.com/opensourceways/defect-manager/defect/domain/dp"
 )
 
 type EventHandler interface {
@@ -104,7 +106,12 @@ func (impl eventHandler) HandleNoteEvent(e *sdk.NoteEvent) error {
 	}
 
 	issueInfo[itemAbi] = strings.Join(abi, ",")
-	err = impl.service.SaveDefects(impl.toCmd(e, issueInfo, version))
+	cmd, err := impl.toCmd(e, issueInfo, version)
+	if err != nil {
+		return fmt.Errorf("to cmd error: %s", err.Error())
+	}
+
+	err = impl.service.SaveDefects(cmd)
 	if err == nil {
 		return commentIssue("Your issue is accepted, thank you")
 	}
@@ -143,8 +150,55 @@ func (impl eventHandler) approveCmdReplyToComment(e *sdk.NoteEvent) string {
 	return ""
 }
 
-func (impl eventHandler) toCmd(e *sdk.NoteEvent, issueInfo map[string]string, version []string) app.CmdToSaveDefect {
-	return app.CmdToSaveDefect{}
+func (impl eventHandler) toCmd(e *sdk.NoteEvent, issueInfo map[string]string, version []string) (
+	cmd app.CmdToSaveDefect, err error) {
+	systemVersion, err := dp.NewSystemVersion(issueInfo[itemSystemVersion])
+	if err != nil {
+		return
+	}
+
+	referenceUrl, err := dp.NewURL(issueInfo[itemReferenceUrl])
+	if err != nil {
+		return
+	}
+
+	guidanceUrl, err := dp.NewURL(issueInfo[itemGuidanceUrl])
+	if err != nil {
+		return
+	}
+
+	securityLevel, err := dp.NewSeverityLevel(issueInfo[itemSeverityLevel])
+	if err != nil {
+		return
+	}
+
+	var affectedVersion []dp.SystemVersion
+	for _, v := range version {
+		var dv dp.SystemVersion
+		if dv, err = dp.NewSystemVersion(v); err != nil {
+			return
+		}
+		affectedVersion = append(affectedVersion, dv)
+	}
+
+	return app.CmdToSaveDefect{
+		Kernel:          issueInfo[itemKernel],
+		Component:       issueInfo[itemComponents],
+		SystemVersion:   systemVersion,
+		Description:     issueInfo[itemDescription],
+		ReferenceURL:    referenceUrl,
+		GuidanceURL:     guidanceUrl,
+		Influence:       issueInfo[itemInfluence],
+		SeverityLevel:   securityLevel,
+		AffectedVersion: affectedVersion,
+		ABI:             issueInfo[itemAbi],
+		Issue: domain.Issue{
+			Number: e.Issue.Number,
+			Org:    e.Repository.Namespace,
+			Repo:   e.Repository.Name,
+			Status: dp.IssueStatusClosed,
+		},
+	}, nil
 }
 
 func (impl eventHandler) checkRelatedPR(e *sdk.NoteEvent, versions []string) error {

@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -16,6 +17,8 @@ import (
 	"github.com/opensourceways/defect-manager/defect/domain/repository"
 	"github.com/opensourceways/defect-manager/utils"
 )
+
+const uploadedDefect = "update_defect.txt"
 
 type DefectService interface {
 	SaveDefects(CmdToSaveDefect) error
@@ -67,7 +70,7 @@ func (d defectService) CollectDefects(date time.Time) (dto []CollectDefectsDTO, 
 	}
 
 	defects, err := d.repo.FindDefects(opt)
-	if err != nil {
+	if err != nil || len(defects) == 0 {
 		return
 	}
 
@@ -109,31 +112,48 @@ func (d defectService) GenerateBulletins(number []string) error {
 	d.productTree.InitCache()
 	defer d.productTree.CleanCache()
 
+	var uploadedFile []string
 	for _, b := range bulletins {
+		maxIdentification++
+		b.Identification = fmt.Sprintf("openEuler-BA-%d-%d", utils.Year(), maxIdentification)
+
 		b.ProductTree, err = d.productTree.GetTree(b.Component, b.AffectedVersion)
 		if err != nil {
-			logrus.Errorf("component %s, get productTree error: %s", b.Component, err.Error())
+			logrus.Errorf("%s, component %s, get productTree error: %s", b.Identification, b.Component, err.Error())
 
 			continue
 		}
 
-		maxIdentification++
-		b.Identification = fmt.Sprintf("openEuler-BA-%d-%d", utils.Year(), maxIdentification)
-
 		xmlData, err := d.bulletin.Generate(&b)
 		if err != nil {
-			logrus.Errorf("component: %s, to xml error: %s", b.Component, err.Error())
+			logrus.Errorf("%s, component: %s, to xml error: %s", b.Identification, b.Component, err.Error())
 
 			continue
 		}
 
 		fileName := fmt.Sprintf("%s.xml", b.Identification)
 		if err := d.obs.Upload(fileName, xmlData); err != nil {
-			logrus.Errorf("component: %s, upload to obs error: %s", b.Component, err.Error())
+			logrus.Errorf("%s, component: %s, upload to obs error: %s", b.Identification, b.Component, err.Error())
 
 			continue
 		}
+
+		uploadedFile = append(uploadedFile, fileName)
 	}
 
-	return nil
+	return d.uploadUploadedFile(uploadedFile)
+}
+
+func (d defectService) uploadUploadedFile(files []string) error {
+	if len(files) == 0 {
+		return nil
+	}
+
+	var uploadedFileWithPrefix []string
+	for _, v := range files {
+		t := fmt.Sprintf("%d/%s", time.Now().Year(), v)
+		uploadedFileWithPrefix = append(uploadedFileWithPrefix, t)
+	}
+
+	return d.obs.Upload(uploadedDefect, []byte(strings.Join(uploadedFileWithPrefix, "\n")))
 }
