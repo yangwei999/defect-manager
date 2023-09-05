@@ -15,7 +15,7 @@ FROM openeuler/openeuler:22.03
 RUN dnf -y update && \
     dnf in -y shadow && \
     groupadd -g 1000 defect && \
-    useradd -u 1000 -g defect -s /sbin/nologin -m defect
+    useradd -u 1000 -g defect -s /bin/bash -m defect
 
 USER defect
 
