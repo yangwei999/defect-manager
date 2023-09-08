@@ -3,7 +3,7 @@ module github.com/opensourceways/defect-manager
 go 1.18
 
 require (
-	github.com/opensourceways/go-gitee v0.0.0-20230727110719-c431ff93ba8b
+	github.com/opensourceways/go-gitee v0.0.0-20230908081144-c1e3b31158b4
 	github.com/opensourceways/kafka-lib v0.0.0-20230406092848-cefa19b4d680
 	github.com/opensourceways/robot-gitee-lib v0.0.0-20230323030221-ef1078bbd55c
 	github.com/opensourceways/server-common-lib v0.0.0-20230901015529-419e747a78f9
