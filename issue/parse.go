@@ -15,16 +15,17 @@ const (
 	cmdCheck   = "/check-issue"
 	cmdApprove = "/approve"
 
-	itemKernel          = "kernel"
-	itemComponents      = "components"
-	itemSystemVersion   = "systemVersion"
-	itemDescription     = "description"
-	itemReferenceUrl    = "referenceUrl"
-	itemGuidanceUrl     = "guidanceUrl"
-	itemInfluence       = "influence"
-	itemSeverityLevel   = "severityLevel"
-	itemAffectedVersion = "affectedVersion"
-	itemAbi             = "abi"
+	itemKernel            = "kernel"
+	itemComponents        = "components"
+	itemComponentsVersion = "componentsVersion"
+	itemSystemVersion     = "systemVersion"
+	itemDescription       = "description"
+	itemReferenceUrl      = "referenceUrl"
+	itemGuidanceUrl       = "guidanceUrl"
+	itemInfluence         = "influence"
+	itemSeverityLevel     = "severityLevel"
+	itemAffectedVersion   = "affectedVersion"
+	itemAbi               = "abi"
 
 	severityLevelLow      = "Low"
 	severityLevelModerate = "Moderate"
@@ -34,21 +35,23 @@ const (
 
 var (
 	regexpOfItems = map[string]*regexp.Regexp{
-		itemKernel:          regexp.MustCompile(`(内核信息)[:：]([\s\S]*?)缺陷归属组件`),
-		itemComponents:      regexp.MustCompile(`(缺陷归属组件)[:：]([\s\S]*?)组件版本`),
-		itemSystemVersion:   regexp.MustCompile(`(缺陷归属的版本)[:：]([\s\S]*?)缺陷简述`),
-		itemDescription:     regexp.MustCompile(`(缺陷简述)[:：]([\s\S]*?)缺陷创建时间`),
-		itemReferenceUrl:    regexp.MustCompile(`(缺陷详情参考链接)[:：]([\s\S]*?)缺陷分析指导链接`),
-		itemGuidanceUrl:     regexp.MustCompile(`(缺陷分析指导链接)[:：]([\s\S]*?)二、缺陷分析结构反馈`),
-		itemInfluence:       regexp.MustCompile(`(影响性分析说明)[:：]([\s\S]*?)缺陷严重等级`),
-		itemSeverityLevel:   regexp.MustCompile(`(缺陷严重等级)[:：]\s*(\w+)`),
-		itemAffectedVersion: regexp.MustCompile(`(受影响版本排查)\(受影响/不受影响\)[:：]([\s\S]*?)abi变化`),
-		itemAbi:             regexp.MustCompile(`(abi变化)\(受影响/不受影响\)[:：]([\s\S]*?)$`),
+		itemKernel:            regexp.MustCompile(`(内核信息)[:：]([\s\S]*?)缺陷归属组件`),
+		itemComponents:        regexp.MustCompile(`(缺陷归属组件)[:：]([\s\S]*?)组件版本`),
+		itemComponentsVersion: regexp.MustCompile(`(组件版本)[:：]([\s\S]*?)缺陷归属的版本`),
+		itemSystemVersion:     regexp.MustCompile(`(缺陷归属的版本)[:：]([\s\S]*?)缺陷简述`),
+		itemDescription:       regexp.MustCompile(`(缺陷简述)[:：]([\s\S]*?)缺陷创建时间`),
+		itemReferenceUrl:      regexp.MustCompile(`(缺陷详情参考链接)[:：]([\s\S]*?)缺陷分析指导链接`),
+		itemGuidanceUrl:       regexp.MustCompile(`(缺陷分析指导链接)[:：]([\s\S]*?)二、缺陷分析结构反馈`),
+		itemInfluence:         regexp.MustCompile(`(影响性分析说明)[:：]([\s\S]*?)缺陷严重等级`),
+		itemSeverityLevel:     regexp.MustCompile(`(缺陷严重等级)[:：]\s*(\w+)`),
+		itemAffectedVersion:   regexp.MustCompile(`(受影响版本排查)\(受影响/不受影响\)[:：]([\s\S]*?)abi变化`),
+		itemAbi:               regexp.MustCompile(`(abi变化)\(受影响/不受影响\)[:：]([\s\S]*?)$`),
 	}
 
 	sortOfItems = []string{
 		itemKernel,
 		itemComponents,
+		itemComponentsVersion,
 		itemSystemVersion,
 		itemDescription,
 		itemReferenceUrl,

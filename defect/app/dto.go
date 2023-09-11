@@ -20,7 +20,7 @@ func ToCollectDefectsDTO(defects domain.Defects) []CollectDefectsDTO {
 			Component: d.Component,
 			Status:    d.Issue.Status.String(),
 			Score:     d.SeverityLevel.String(),
-			Version:   d.SystemVersion.String(),
+			Version:   d.ComponentVersion,
 		})
 	}
 
