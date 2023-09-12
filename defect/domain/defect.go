@@ -15,17 +15,18 @@ type DefectsByComponent []Defect
 type DefectsByVersion []Defect
 
 type Defect struct {
-	Kernel          string
-	Component       string
-	SystemVersion   dp.SystemVersion
-	Description     string
-	ReferenceURL    dp.URL
-	GuidanceURL     dp.URL
-	Influence       string
-	SeverityLevel   dp.SeverityLevel
-	AffectedVersion []dp.SystemVersion
-	ABI             string
-	Issue           Issue
+	Kernel           string
+	Component        string
+	ComponentVersion string
+	SystemVersion    dp.SystemVersion
+	Description      string
+	ReferenceURL     dp.URL
+	GuidanceURL      dp.URL
+	Influence        string
+	SeverityLevel    dp.SeverityLevel
+	AffectedVersion  []dp.SystemVersion
+	ABI              string
+	Issue            Issue
 }
 
 type Issue struct {

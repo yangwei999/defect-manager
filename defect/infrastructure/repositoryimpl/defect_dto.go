@@ -10,23 +10,24 @@ import (
 )
 
 type defectDO struct {
-	ID              int            `gorm:"column:id;primaryKey;autoIncrement"`
-	Number          string         `gorm:"column:number;index"` // Number is the number of issue
-	Org             string         `gorm:"column:org"`
-	Repo            string         `gorm:"column:repo"`
-	Status          string         `gorm:"column:status"`
-	Kernel          string         `gorm:"column:kernel"`
-	Component       string         `gorm:"column:component"`
-	SystemVersion   string         `gorm:"column:system_version"`
-	Description     string         `gorm:"column:description"`
-	ReferenceURL    string         `gorm:"column:reference_url"`
-	GuidanceURL     string         `gorm:"column:guidance_url"`
-	Influence       string         `gorm:"column:influence"`
-	SeverityLevel   string         `gorm:"column:severity_level"`
-	AffectedVersion pq.StringArray `gorm:"column:affected_version;type:text[];default:'{}'"`
-	ABI             string         `gorm:"column:abi"`
-	CreatedAt       time.Time      `gorm:"column:created_at;<-:create;index"`
-	UpdatedAt       time.Time      `gorm:"column:updated_at"`
+	ID               int            `gorm:"column:id;primaryKey;autoIncrement"`
+	Number           string         `gorm:"column:number;index"` // Number is the number of issue
+	Org              string         `gorm:"column:org"`
+	Repo             string         `gorm:"column:repo"`
+	Status           string         `gorm:"column:status"`
+	Kernel           string         `gorm:"column:kernel"`
+	Component        string         `gorm:"column:component"`
+	ComponentVersion string         `gorm:"column:component_version"`
+	SystemVersion    string         `gorm:"column:system_version"`
+	Description      string         `gorm:"column:description"`
+	ReferenceURL     string         `gorm:"column:reference_url"`
+	GuidanceURL      string         `gorm:"column:guidance_url"`
+	Influence        string         `gorm:"column:influence"`
+	SeverityLevel    string         `gorm:"column:severity_level"`
+	AffectedVersion  pq.StringArray `gorm:"column:affected_version;type:text[];default:'{}'"`
+	ABI              string         `gorm:"column:abi"`
+	CreatedAt        time.Time      `gorm:"column:created_at;<-:create;index"`
+	UpdatedAt        time.Time      `gorm:"column:updated_at"`
 }
 
 func (d defectDO) TableName() string {
@@ -35,20 +36,21 @@ func (d defectDO) TableName() string {
 
 func (impl defectImpl) toDefectDO(defect *domain.Defect) defectDO {
 	return defectDO{
-		Number:          defect.Issue.Number,
-		Org:             defect.Issue.Org,
-		Repo:            defect.Issue.Repo,
-		Status:          defect.Issue.Status.String(),
-		Kernel:          defect.Kernel,
-		Component:       defect.Component,
-		SystemVersion:   defect.SystemVersion.String(),
-		Description:     defect.Description,
-		ReferenceURL:    defect.ReferenceURL.URL(),
-		GuidanceURL:     defect.GuidanceURL.URL(),
-		Influence:       defect.Influence,
-		SeverityLevel:   defect.SeverityLevel.String(),
-		AffectedVersion: toStringArray(defect.AffectedVersion),
-		ABI:             defect.ABI,
+		Number:           defect.Issue.Number,
+		Org:              defect.Issue.Org,
+		Repo:             defect.Issue.Repo,
+		Status:           defect.Issue.Status.String(),
+		Kernel:           defect.Kernel,
+		Component:        defect.Component,
+		ComponentVersion: defect.ComponentVersion,
+		SystemVersion:    defect.SystemVersion.String(),
+		Description:      defect.Description,
+		ReferenceURL:     defect.ReferenceURL.URL(),
+		GuidanceURL:      defect.GuidanceURL.URL(),
+		Influence:        defect.Influence,
+		SeverityLevel:    defect.SeverityLevel.String(),
+		AffectedVersion:  toStringArray(defect.AffectedVersion),
+		ABI:              defect.ABI,
 	}
 }
 
@@ -79,16 +81,17 @@ func (d defectDO) toDefect() domain.Defect {
 	status, _ := dp.NewIssueStatus(d.Status)
 
 	return domain.Defect{
-		Kernel:          d.Kernel,
-		Component:       d.Component,
-		SystemVersion:   version,
-		Description:     d.Description,
-		ReferenceURL:    referenceURL,
-		GuidanceURL:     guidanceURL,
-		Influence:       d.Influence,
-		SeverityLevel:   severityLevel,
-		AffectedVersion: toSystemVersion(d.AffectedVersion),
-		ABI:             d.ABI,
+		Kernel:           d.Kernel,
+		Component:        d.Component,
+		ComponentVersion: d.ComponentVersion,
+		SystemVersion:    version,
+		Description:      d.Description,
+		ReferenceURL:     referenceURL,
+		GuidanceURL:      guidanceURL,
+		Influence:        d.Influence,
+		SeverityLevel:    severityLevel,
+		AffectedVersion:  toSystemVersion(d.AffectedVersion),
+		ABI:              d.ABI,
 		Issue: domain.Issue{
 			Number: d.Number,
 			Org:    d.Org,

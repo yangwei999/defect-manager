@@ -182,16 +182,17 @@ func (impl eventHandler) toCmd(e *sdk.NoteEvent, issueInfo map[string]string, ve
 	}
 
 	return app.CmdToSaveDefect{
-		Kernel:          issueInfo[itemKernel],
-		Component:       issueInfo[itemComponents],
-		SystemVersion:   systemVersion,
-		Description:     issueInfo[itemDescription],
-		ReferenceURL:    referenceUrl,
-		GuidanceURL:     guidanceUrl,
-		Influence:       issueInfo[itemInfluence],
-		SeverityLevel:   securityLevel,
-		AffectedVersion: affectedVersion,
-		ABI:             issueInfo[itemAbi],
+		Kernel:           issueInfo[itemKernel],
+		Component:        issueInfo[itemComponents],
+		ComponentVersion: issueInfo[itemComponentsVersion],
+		SystemVersion:    systemVersion,
+		Description:      issueInfo[itemDescription],
+		ReferenceURL:     referenceUrl,
+		GuidanceURL:      guidanceUrl,
+		Influence:        issueInfo[itemInfluence],
+		SeverityLevel:    securityLevel,
+		AffectedVersion:  affectedVersion,
+		ABI:              issueInfo[itemAbi],
 		Issue: domain.Issue{
 			Number: e.Issue.Number,
 			Org:    e.Repository.Namespace,
