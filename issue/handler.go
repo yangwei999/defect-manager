@@ -74,7 +74,7 @@ func (impl eventHandler) HandleIssueEvent(e *sdk.IssueEvent) error {
 
 func (impl eventHandler) HandleNoteEvent(e *sdk.NoteEvent) error {
 	if !e.IsIssue() || e.Issue.TypeName != impl.cfg.IssueType ||
-		e.Issue.State == sdk.StatusClosed {
+		e.Issue.State == sdk.StatusClosed || e.Comment.User.Login == impl.botName {
 		return nil
 	}
 

@@ -201,7 +201,7 @@ func (impl eventHandler) parseComment(body string) (parseCommentResult, error) {
 func (impl eventHandler) parse(items []string, body string) (map[string]string, error) {
 	mr := utils.NewMultiErrors()
 
-	parseResultTmp := make(map[string]string)
+	parseResult := make(map[string]string)
 	for _, item := range items {
 		match := regexpOfItems[item].FindAllStringSubmatch(body, -1)
 		if len(match) < 1 || len(match[0]) < 3 {
@@ -216,26 +216,26 @@ func (impl eventHandler) parse(items []string, body string) (map[string]string, 
 		}
 
 		if _, ok := noTrimItem[item]; ok {
-			parseResultTmp[item] = match[0][2]
+			parseResult[item] = match[0][2]
 		} else {
-			parseResultTmp[item] = trimItemInfo
+			parseResult[item] = trimItemInfo
 		}
 
 		switch item {
 		case itemSeverityLevel:
-			if _, exist := severityLevelMap[parseResultTmp[item]]; !exist {
-				mr.Add(fmt.Sprintf("缺陷严重等级 %s 错误", parseResultTmp[item]))
+			if _, exist := severityLevelMap[parseResult[item]]; !exist {
+				mr.Add(fmt.Sprintf("缺陷严重等级 %s 错误", parseResult[item]))
 			}
 
 		case itemSystemVersion:
 			maintainVersion := sets.NewString(impl.cfg.MaintainVersion...)
-			if !maintainVersion.Has(parseResultTmp[item]) {
-				mr.Add(fmt.Sprintf("缺陷归属版本 %s 错误", parseResultTmp[item]))
+			if !maintainVersion.Has(parseResult[item]) {
+				mr.Add(fmt.Sprintf("缺陷归属版本 %s 错误", parseResult[item]))
 			}
 		}
 	}
 
-	return parseResultTmp, mr.Err()
+	return parseResult, mr.Err()
 }
 
 func (impl eventHandler) parseVersion(s string) ([]string, error) {
