@@ -129,7 +129,13 @@ func run(cfg *config.Config, o options) {
 		obsimpl.Instance(),
 	)
 
-	err := messageserver.Init(&cfg.MessageServer, issue.NewEventHandler(&cfg.Issue, service))
+	if err := issue.InitEventHandler(&cfg.Issue, service); err != nil {
+		logrus.Errorf("init event handler failed, err:%s", err.Error())
+
+		return
+	}
+
+	err := messageserver.Init(&cfg.MessageServer, issue.Instance)
 	if err != nil {
 		logrus.Errorf("init message server failed, err:%s", err.Error())
 

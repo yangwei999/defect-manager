@@ -34,6 +34,20 @@ const (
 )
 
 var (
+	itemName = map[string]string{
+		itemKernel:            "内核信息",
+		itemComponents:        "缺陷归属组件",
+		itemComponentsVersion: "组件版本",
+		itemSystemVersion:     "归属版本",
+		itemDescription:       "缺陷简述",
+		itemReferenceUrl:      "详情参考链接",
+		itemGuidanceUrl:       "分析指导链接",
+		itemInfluence:         "影响性分析说明",
+		itemSeverityLevel:     "严重等级",
+		itemAffectedVersion:   "受影响版本",
+		itemAbi:               "abi",
+	}
+
 	regexpOfItems = map[string]*regexp.Regexp{
 		itemKernel:            regexp.MustCompile(`(内核信息)[:：]([\s\S]*?)缺陷归属组件`),
 		itemComponents:        regexp.MustCompile(`(缺陷归属组件)[:：]([\s\S]*?)组件版本`),
@@ -41,14 +55,14 @@ var (
 		itemSystemVersion:     regexp.MustCompile(`(缺陷归属的版本)[:：]([\s\S]*?)缺陷简述`),
 		itemDescription:       regexp.MustCompile(`(缺陷简述)[:：]([\s\S]*?)缺陷创建时间`),
 		itemReferenceUrl:      regexp.MustCompile(`(缺陷详情参考链接)[:：]([\s\S]*?)缺陷分析指导链接`),
-		itemGuidanceUrl:       regexp.MustCompile(`(缺陷分析指导链接)[:：]([\s\S]*?)二、缺陷分析结构反馈`),
+		itemGuidanceUrl:       regexp.MustCompile(`(缺陷分析指导链接)[:：]([\s\S]*?)$`),
 		itemInfluence:         regexp.MustCompile(`(影响性分析说明)[:：]([\s\S]*?)缺陷严重等级`),
-		itemSeverityLevel:     regexp.MustCompile(`(缺陷严重等级)[:：]\s*(\w+)`),
+		itemSeverityLevel:     regexp.MustCompile(`(缺陷严重等级)[:：]([\s\S]*?)受影响版本排查`),
 		itemAffectedVersion:   regexp.MustCompile(`(受影响版本排查)\(受影响/不受影响\)[:：]([\s\S]*?)abi变化`),
 		itemAbi:               regexp.MustCompile(`(abi变化)\(受影响/不受影响\)[:：]([\s\S]*?)$`),
 	}
 
-	sortOfItems = []string{
+	sortOfIssueItems = []string{
 		itemKernel,
 		itemComponents,
 		itemComponentsVersion,
@@ -56,8 +70,13 @@ var (
 		itemDescription,
 		itemReferenceUrl,
 		itemGuidanceUrl,
+	}
+
+	sortOfCommentItems = []string{
 		itemInfluence,
 		itemSeverityLevel,
+		itemAffectedVersion,
+		itemAbi,
 	}
 
 	noTrimItem = map[string]bool{
@@ -78,6 +97,23 @@ var (
 	}
 )
 
+type parseIssueResult struct {
+	Kernel           string
+	Component        string
+	ComponentVersion string
+	SystemVersion    string
+	Description      string
+	ReferenceUrl     string
+	GuidanceUrl      string
+}
+
+type parseCommentResult struct {
+	Influence       string
+	SeverityLevel   string
+	AffectedVersion []string
+	Abi             []string
+}
+
 func (impl eventHandler) isValidCmd(comment string) bool {
 	for _, v := range validCmd {
 		if strings.Contains(comment, v) {
@@ -88,73 +124,118 @@ func (impl eventHandler) isValidCmd(comment string) bool {
 	return false
 }
 
-func (impl eventHandler) parseIssue(body string) (issueInfo map[string]string, err error) {
+func (impl eventHandler) parseIssue(body string) (parseIssueResult, error) {
+	result, err := impl.parse(sortOfIssueItems, body)
+	if err != nil {
+		return parseIssueResult{}, err
+	}
+
+	var ret parseIssueResult
+	if v, ok := result[itemKernel]; ok {
+		ret.Kernel = v
+	}
+
+	if v, ok := result[itemComponents]; ok {
+		ret.Component = v
+	}
+
+	if v, ok := result[itemComponentsVersion]; ok {
+		ret.ComponentVersion = v
+	}
+
+	if v, ok := result[itemSystemVersion]; ok {
+		ret.SystemVersion = v
+	}
+
+	if v, ok := result[itemDescription]; ok {
+		ret.Description = v
+	}
+
+	if v, ok := result[itemReferenceUrl]; ok {
+		ret.ReferenceUrl = v
+	}
+
+	if v, ok := result[itemGuidanceUrl]; ok {
+		ret.GuidanceUrl = v
+	}
+
+	return ret, nil
+}
+
+func (impl eventHandler) parseComment(body string) (parseCommentResult, error) {
+	result, err := impl.parse(sortOfCommentItems, body)
+	if err != nil {
+		return parseCommentResult{}, err
+	}
+
+	var ret parseCommentResult
+	if v, ok := result[itemInfluence]; ok {
+		ret.Influence = v
+	}
+
+	if v, ok := result[itemSeverityLevel]; ok {
+		ret.SeverityLevel = v
+	}
+
+	if v, ok := result[itemAffectedVersion]; ok {
+		affectedVersion, err := impl.parseVersion(v)
+		if err != nil {
+			return parseCommentResult{}, err
+		}
+
+		ret.AffectedVersion = affectedVersion
+	}
+
+	if v, ok := result[itemAbi]; ok {
+		abi, err := impl.parseVersion(v)
+		if err != nil {
+			return parseCommentResult{}, err
+		}
+
+		ret.Abi = abi
+	}
+
+	return ret, nil
+}
+
+func (impl eventHandler) parse(items []string, body string) (map[string]string, error) {
 	mr := utils.NewMultiErrors()
 
-	issueInfo = make(map[string]string)
-	for _, item := range sortOfItems {
+	parseResultTmp := make(map[string]string)
+	for _, item := range items {
 		match := regexpOfItems[item].FindAllStringSubmatch(body, -1)
 		if len(match) < 1 || len(match[0]) < 3 {
-			mr.Add(fmt.Sprintf("%s 解析失败", item))
+			mr.Add(fmt.Sprintf("%s 解析失败", itemName[item]))
 			continue
 		}
 
 		trimItemInfo := localutils.TrimString(match[0][2])
 		if trimItemInfo == "" {
-			mr.Add(fmt.Sprintf("%s 不允许为空", match[0][1]))
+			mr.Add(fmt.Sprintf("%s 不允许为空", itemName[item]))
 			continue
 		}
 
 		if _, ok := noTrimItem[item]; ok {
-			issueInfo[item] = match[0][2]
+			parseResultTmp[item] = match[0][2]
 		} else {
-			issueInfo[item] = trimItemInfo
+			parseResultTmp[item] = trimItemInfo
 		}
 
 		switch item {
 		case itemSeverityLevel:
-			if _, exist := severityLevelMap[issueInfo[item]]; !exist {
-				mr.Add(fmt.Sprintf("缺陷严重等级 %s 错误", issueInfo[item]))
+			if _, exist := severityLevelMap[parseResultTmp[item]]; !exist {
+				mr.Add(fmt.Sprintf("缺陷严重等级 %s 错误", parseResultTmp[item]))
 			}
 
 		case itemSystemVersion:
 			maintainVersion := sets.NewString(impl.cfg.MaintainVersion...)
-			if !maintainVersion.Has(issueInfo[item]) {
-				mr.Add(fmt.Sprintf("缺陷归属版本 %s 错误", issueInfo[item]))
+			if !maintainVersion.Has(parseResultTmp[item]) {
+				mr.Add(fmt.Sprintf("缺陷归属版本 %s 错误", parseResultTmp[item]))
 			}
 		}
 	}
 
-	return issueInfo, mr.Err()
-}
-
-func (impl eventHandler) parseComment(s string) (affectedVersion []string, abi []string, err error) {
-	mr := utils.NewMultiErrors()
-	versionMatch := regexpOfItems[itemAffectedVersion].FindAllStringSubmatch(s, -1)
-	if len(versionMatch) == 0 || len(versionMatch[0]) < 3 {
-		mr.Add("受影响版本排查解析失败")
-	}
-
-	abiMatch := regexpOfItems[itemAbi].FindAllStringSubmatch(s, -1)
-	if len(abiMatch) == 0 || len(abiMatch[0]) < 3 {
-		mr.Add("abi变化解析失败")
-	}
-	err = mr.Err()
-	if err != nil {
-		return
-	}
-
-	affectedVersion, err = impl.parseVersion(versionMatch[0][2])
-	if err != nil {
-		return
-	}
-
-	abi, err = impl.parseVersion(abiMatch[0][2])
-	if err != nil {
-		return
-	}
-
-	return
+	return parseResultTmp, mr.Err()
 }
 
 func (impl eventHandler) parseVersion(s string) ([]string, error) {
