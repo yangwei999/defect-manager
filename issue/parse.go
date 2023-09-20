@@ -31,6 +31,9 @@ const (
 	severityLevelModerate = "Moderate"
 	severityLevelHigh     = "High"
 	severityLevelCritical = "Critical"
+
+	regMatchResult = 0
+	regMatchItem   = 2
 )
 
 var (
@@ -204,19 +207,20 @@ func (impl eventHandler) parse(items []string, body string) (map[string]string, 
 	parseResult := make(map[string]string)
 	for _, item := range items {
 		match := regexpOfItems[item].FindAllStringSubmatch(body, -1)
-		if len(match) < 1 || len(match[0]) < 3 {
+		if len(match) < 1 || len(match[regMatchResult]) < 3 {
 			mr.Add(fmt.Sprintf("%s 解析失败", itemName[item]))
 			continue
 		}
 
-		trimItemInfo := localutils.TrimString(match[0][2])
+		matchItem := match[regMatchResult][regMatchItem]
+		trimItemInfo := localutils.TrimString(matchItem)
 		if trimItemInfo == "" {
 			mr.Add(fmt.Sprintf("%s 不允许为空", itemName[item]))
 			continue
 		}
 
 		if _, ok := noTrimItem[item]; ok {
-			parseResult[item] = match[0][2]
+			parseResult[item] = matchItem
 		} else {
 			parseResult[item] = trimItemInfo
 		}
