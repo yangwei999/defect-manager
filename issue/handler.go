@@ -17,6 +17,8 @@ import (
 	"github.com/opensourceways/defect-manager/defect/domain/dp"
 )
 
+var Instance *eventHandler
+
 type EventHandler interface {
 	HandleIssueEvent(e *sdk.IssueEvent) error
 	HandleNoteEvent(e *sdk.NoteEvent) error
@@ -26,20 +28,31 @@ type iClient interface {
 	CreateIssueComment(org, repo string, number string, comment string) error
 	ListIssueComments(org, repo, number string) ([]sdk.Note, error)
 	CloseIssue(owner, repo string, number string) error
+	GetBot() (sdk.User, error)
 }
 
-func NewEventHandler(c *Config, s app.DefectService) *eventHandler {
+func InitEventHandler(c *Config, s app.DefectService) error {
 	cli := client.NewClient(func() []byte {
 		return []byte(c.RobotToken)
 	})
-	return &eventHandler{
+
+	bot, err := cli.GetBot()
+	if err != nil {
+		return err
+	}
+
+	Instance = &eventHandler{
+		botName: bot.Login,
 		cfg:     c,
 		cli:     cli,
 		service: s,
 	}
+
+	return nil
 }
 
 type eventHandler struct {
+	botName string
 	cfg     *Config
 	cli     iClient
 	service app.DefectService
@@ -60,7 +73,8 @@ func (impl eventHandler) HandleIssueEvent(e *sdk.IssueEvent) error {
 }
 
 func (impl eventHandler) HandleNoteEvent(e *sdk.NoteEvent) error {
-	if !e.IsIssue() || e.Issue.TypeName != impl.cfg.IssueType || e.Issue.State == sdk.StatusClosed {
+	if !e.IsIssue() || e.Issue.TypeName != impl.cfg.IssueType ||
+		e.Issue.State == sdk.StatusClosed || e.Comment.User.Login == impl.botName {
 		return nil
 	}
 
@@ -75,7 +89,7 @@ func (impl eventHandler) HandleNoteEvent(e *sdk.NoteEvent) error {
 			return nil
 		}
 
-		if _, _, err := impl.parseComment(e.Comment.Body); err != nil {
+		if _, err := impl.parseComment(e.Comment.Body); err != nil {
 			return commentIssue(err.Error())
 		}
 
@@ -92,12 +106,12 @@ func (impl eventHandler) HandleNoteEvent(e *sdk.NoteEvent) error {
 		return nil
 	}
 
-	version, abi, err := impl.parseComment(comment)
+	commentInfo, err := impl.parseComment(comment)
 	if err != nil {
-		return commentIssue(err.Error())
+		return commentIssue(strings.Replace(err.Error(), ". ", "\n\n", -1))
 	}
 
-	if err = impl.checkRelatedPR(e, version); err != nil {
+	if err = impl.checkRelatedPR(e, commentInfo.AffectedVersion); err != nil {
 		return commentIssue(err.Error())
 	}
 
@@ -105,8 +119,7 @@ func (impl eventHandler) HandleNoteEvent(e *sdk.NoteEvent) error {
 		return fmt.Errorf("close pr error: %s", err.Error())
 	}
 
-	issueInfo[itemAbi] = strings.Join(abi, ",")
-	cmd, err := impl.toCmd(e, issueInfo, version)
+	cmd, err := impl.toCmd(e, issueInfo, commentInfo)
 	if err != nil {
 		return fmt.Errorf("to cmd error: %s", err.Error())
 	}
@@ -150,30 +163,30 @@ func (impl eventHandler) approveCmdReplyToComment(e *sdk.NoteEvent) string {
 	return ""
 }
 
-func (impl eventHandler) toCmd(e *sdk.NoteEvent, issueInfo map[string]string, version []string) (
+func (impl eventHandler) toCmd(e *sdk.NoteEvent, issue parseIssueResult, comment parseCommentResult) (
 	cmd app.CmdToSaveDefect, err error) {
-	systemVersion, err := dp.NewSystemVersion(issueInfo[itemSystemVersion])
+	systemVersion, err := dp.NewSystemVersion(issue.SystemVersion)
 	if err != nil {
 		return
 	}
 
-	referenceUrl, err := dp.NewURL(issueInfo[itemReferenceUrl])
+	referenceUrl, err := dp.NewURL(issue.ReferenceUrl)
 	if err != nil {
 		return
 	}
 
-	guidanceUrl, err := dp.NewURL(issueInfo[itemGuidanceUrl])
+	guidanceUrl, err := dp.NewURL(issue.GuidanceUrl)
 	if err != nil {
 		return
 	}
 
-	securityLevel, err := dp.NewSeverityLevel(issueInfo[itemSeverityLevel])
+	securityLevel, err := dp.NewSeverityLevel(comment.SeverityLevel)
 	if err != nil {
 		return
 	}
 
 	var affectedVersion []dp.SystemVersion
-	for _, v := range version {
+	for _, v := range comment.AffectedVersion {
 		var dv dp.SystemVersion
 		if dv, err = dp.NewSystemVersion(v); err != nil {
 			return
@@ -182,17 +195,17 @@ func (impl eventHandler) toCmd(e *sdk.NoteEvent, issueInfo map[string]string, ve
 	}
 
 	return app.CmdToSaveDefect{
-		Kernel:           issueInfo[itemKernel],
-		Component:        issueInfo[itemComponents],
-		ComponentVersion: issueInfo[itemComponentsVersion],
+		Kernel:           issue.Kernel,
+		Component:        issue.Component,
+		ComponentVersion: issue.ComponentVersion,
 		SystemVersion:    systemVersion,
-		Description:      issueInfo[itemDescription],
+		Description:      issue.Description,
 		ReferenceURL:     referenceUrl,
 		GuidanceURL:      guidanceUrl,
-		Influence:        issueInfo[itemInfluence],
+		Influence:        comment.Influence,
 		SeverityLevel:    securityLevel,
 		AffectedVersion:  affectedVersion,
-		ABI:              issueInfo[itemAbi],
+		ABI:              strings.Join(comment.Abi, ","),
 		Issue: domain.Issue{
 			Number: e.Issue.Number,
 			Org:    e.Repository.Namespace,

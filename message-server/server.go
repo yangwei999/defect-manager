@@ -22,9 +22,5 @@ type messageServer struct {
 }
 
 func (m *messageServer) subscribe(cfg *Config) error {
-	subscribers := map[string]kafka.Handler{
-		cfg.Topics.DefectEvent: m.handler.handle,
-	}
-
-	return kafka.Subscribe(cfg.GroupName, subscribers)
+	return kafka.Subscribe(cfg.GroupName, m.handler.handle, []string{cfg.Topics.DefectEvent})
 }
