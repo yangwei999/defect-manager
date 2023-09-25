@@ -117,6 +117,8 @@ func main() {
 
 	producttreeimpl.Init(&cfg.ProductTree)
 
+	issue.InitCommitterInstance()
+
 	run(cfg, o)
 }
 
