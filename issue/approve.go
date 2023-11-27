@@ -58,6 +58,9 @@ func (c *committerCache) isCommitter(repo, user string) bool {
 func (c *committerCache) initCommitterCache() {
 	cli := utils.NewHttpClient(3)
 	for _, sig := range c.getSig() {
+		// Accessing too often can cause 503 errors
+		time.Sleep(time.Millisecond * 200)
+
 		url := fmt.Sprintf("https://www.openeuler.org/api-dsapi/query/sig/repo/committers?community=openeuler&sig=%s", sig)
 
 		request, err := http.NewRequest(http.MethodGet, url, nil)
