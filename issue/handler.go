@@ -145,7 +145,7 @@ func (impl eventHandler) approveCmdReplyToComment(e *sdk.NoteEvent) string {
 	// Iterate from the end to get the latest approve command
 	for i := len(comments) - 1; i >= 0; i-- {
 		if strings.Contains(comments[i].Body, cmdApprove) &&
-			committerInstance.isCommitter(e.Repository.Name, e.Comment.User.Login) {
+			committerInstance.isCommitter(e.Repository.PathWithNamespace, e.Comment.User.Login) {
 			id = comments[i].InReplyToId
 			break
 		}
