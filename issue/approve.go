@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/opensourceways/server-common-lib/utils"
@@ -40,12 +39,12 @@ func InitCommitterInstance() {
 	}
 }
 
-func (c *committerCache) isCommitter(repo, user string) bool {
+func (c *committerCache) isCommitter(pathWithNamespace, user string) bool {
 	if len(c.committersOfRepo) == 0 || c.CacheAt != time.Now().Format("20060102") {
 		c.initCommitterCache()
 	}
 
-	v, ok := c.committersOfRepo[repo]
+	v, ok := c.committersOfRepo[pathWithNamespace]
 	if !ok {
 		return false
 	}
@@ -81,16 +80,7 @@ func (c *committerCache) initCommitterCache() {
 		}
 
 		for _, v := range res.Data.CommitterDetails {
-			if !strings.Contains(v.Repo, "src-openeuler") {
-				continue
-			}
-
-			split := strings.Split(v.Repo, "/")
-			if len(split) < 2 {
-				continue
-			}
-
-			c.committersOfRepo[split[1]] = append(res.Data.Maintainers, v.GiteeId...)
+			c.committersOfRepo[v.Repo] = append(res.Data.Maintainers, v.GiteeId...)
 		}
 	}
 
