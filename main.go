@@ -101,7 +101,7 @@ func main() {
 	}
 
 	// kafka
-	if err = kafka.Init(&cfg.Kafka, log, nil, ""); err != nil {
+	if err = kafka.Init(&cfg.Kafka, log, nil, cfg.MessageServer.GroupName, false); err != nil {
 		logrus.Errorf("init kafka failed, err:%s", err.Error())
 
 		return
