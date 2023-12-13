@@ -93,6 +93,8 @@ func (impl eventHandler) handleIssueClosed(e *sdk.IssueEvent) error {
 		return fmt.Errorf("reopen issue error: %s", err.Error())
 	}
 
+	logrus.Infof("reopen issue %s %s", e.Repository.PathWithNamespace, e.Issue.Number)
+
 	return impl.cli.CreateIssueComment(e.Project.Namespace,
 		e.Project.Name, e.Issue.Number, "缺陷数据未收集完成，重新打开issue")
 }
