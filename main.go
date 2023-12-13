@@ -3,9 +3,6 @@ package main
 import (
 	"flag"
 	"os"
-	"os/signal"
-	"sync"
-	"syscall"
 
 	"github.com/gin-gonic/gin"
 	kafka "github.com/opensourceways/kafka-lib/agent"
@@ -16,7 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"golang.org/x/net/context"
 
 	"github.com/opensourceways/defect-manager/config"
 	"github.com/opensourceways/defect-manager/defect/app"
@@ -163,43 +159,4 @@ func run(cfg *config.Config, o options) {
 		engine.UseRawPath = true
 		engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	})
-
-	wait()
-}
-
-func wait() {
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-
-	var wg sync.WaitGroup
-	defer wg.Wait()
-
-	called := false
-	ctx, done := context.WithCancel(context.Background())
-
-	defer func() {
-		if !called {
-			called = true
-			done()
-		}
-	}()
-
-	wg.Add(1)
-	go func(ctx context.Context) {
-		defer wg.Done()
-
-		select {
-		case <-ctx.Done():
-			logrus.Info("receive done. exit normally")
-			return
-
-		case <-sig:
-			logrus.Info("receive exit signal")
-			called = true
-			done()
-			return
-		}
-	}(ctx)
-
-	<-ctx.Done()
 }
