@@ -38,10 +38,10 @@ type defectImpl struct {
 	db dbimpl
 }
 
-func (impl defectImpl) HasDefect(defect *domain.Defect) (bool, error) {
+func (impl defectImpl) HasDefect(issue *domain.Issue) (bool, error) {
 	filter := defectDO{
-		Number: defect.Issue.Number,
-		Org:    defect.Issue.Org,
+		Number: issue.Number,
+		Org:    issue.Org,
 	}
 
 	var result defectDO

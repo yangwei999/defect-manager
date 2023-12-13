@@ -21,6 +21,7 @@ import (
 const uploadedDefect = "update_defect.txt"
 
 type DefectService interface {
+	IsDefectExist(*domain.Issue) (bool, error)
 	SaveDefects(CmdToSaveDefect) error
 	CollectDefects(time time.Time) ([]CollectDefectsDTO, error)
 	GenerateBulletins([]string) error
@@ -50,8 +51,12 @@ type defectService struct {
 	obs         obs.OBS
 }
 
+func (d defectService) IsDefectExist(issue *domain.Issue) (bool, error) {
+	return d.repo.HasDefect(issue)
+}
+
 func (d defectService) SaveDefects(cmd CmdToSaveDefect) error {
-	has, err := d.repo.HasDefect(&cmd)
+	has, err := d.repo.HasDefect(&cmd.Issue)
 	if err != nil {
 		return err
 	}
