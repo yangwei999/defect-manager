@@ -120,7 +120,7 @@ func (d defectService) GenerateBulletins(number []string) error {
 	var uploadedFile []string
 	for _, b := range bulletins {
 		maxIdentification++
-		b.Identification = fmt.Sprintf("openEuler-BA-%d-%d", utils.Year(), maxIdentification)
+		b.Identification = fmt.Sprintf("cvrf-openEuler-BA-%d-%d", utils.Year(), maxIdentification)
 
 		b.ProductTree, err = d.productTree.GetTree(b.Component, b.AffectedVersion)
 		if err != nil {
