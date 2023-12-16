@@ -28,6 +28,7 @@ type iClient interface {
 	CreateIssueComment(org, repo string, number string, comment string) error
 	ListIssueComments(org, repo, number string) ([]sdk.Note, error)
 	CloseIssue(owner, repo string, number string) error
+	ReopenIssue(owner, repo string, number string) error
 	GetBot() (sdk.User, error)
 }
 
@@ -59,10 +60,46 @@ type eventHandler struct {
 }
 
 func (impl eventHandler) HandleIssueEvent(e *sdk.IssueEvent) error {
-	if e.Issue.State != sdk.StatusOpen || e.Issue.TypeName != impl.cfg.IssueType {
+	if e.Issue.TypeName != impl.cfg.IssueType {
 		return nil
 	}
 
+	switch e.Issue.State {
+	case sdk.StatusClosed:
+		return impl.handleIssueClosed(e)
+
+	case sdk.StatusOpen:
+		return impl.handleIssueOpen(e)
+
+	default:
+		return nil
+	}
+}
+
+func (impl eventHandler) handleIssueClosed(e *sdk.IssueEvent) error {
+	exist, err := impl.service.IsDefectExist(&domain.Issue{
+		Number: e.GetIssueNumber(),
+		Org:    e.Project.Namespace,
+	})
+	if err != nil {
+		return err
+	}
+
+	if exist {
+		return nil
+	}
+
+	if err = impl.cli.ReopenIssue(e.Project.Namespace, e.Project.Name, e.Issue.Number); err != nil {
+		return fmt.Errorf("reopen issue error: %s", err.Error())
+	}
+
+	logrus.Infof("reopen issue %s %s", e.Project.PathWithNamespace, e.Issue.Number)
+
+	return impl.cli.CreateIssueComment(e.Project.Namespace,
+		e.Project.Name, e.Issue.Number, "缺陷数据未收集完成，重新打开issue")
+}
+
+func (impl eventHandler) handleIssueOpen(e *sdk.IssueEvent) error {
 	if _, err := impl.parseIssue(e.Issue.Body); err != nil {
 		return impl.cli.CreateIssueComment(e.Project.Namespace,
 			e.Project.Name, e.Issue.Number, strings.Replace(err.Error(), ". ", "\n\n", -1),
@@ -116,7 +153,7 @@ func (impl eventHandler) HandleNoteEvent(e *sdk.NoteEvent) error {
 	}
 
 	if err = impl.cli.CloseIssue(e.Project.Namespace, e.Project.Name, e.Issue.Number); err != nil {
-		return fmt.Errorf("close pr error: %s", err.Error())
+		return fmt.Errorf("close issue error: %s", err.Error())
 	}
 
 	cmd, err := impl.toCmd(e, issueInfo, commentInfo)
@@ -145,7 +182,7 @@ func (impl eventHandler) approveCmdReplyToComment(e *sdk.NoteEvent) string {
 	// Iterate from the end to get the latest approve command
 	for i := len(comments) - 1; i >= 0; i-- {
 		if strings.Contains(comments[i].Body, cmdApprove) &&
-			committerInstance.isCommitter(e.Repository.PathWithNamespace, e.Comment.User.Login) {
+			committerInstance.isCommitter(e.Repository.PathWithNamespace, comments[i].User.Login) {
 			id = comments[i].InReplyToId
 			break
 		}

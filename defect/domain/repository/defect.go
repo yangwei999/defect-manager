@@ -16,7 +16,7 @@ type OptToFindDefects struct {
 }
 
 type DefectRepository interface {
-	HasDefect(*domain.Defect) (bool, error)
+	HasDefect(*domain.Issue) (bool, error)
 	AddDefect(*domain.Defect) error
 	SaveDefect(*domain.Defect) error
 	FindDefects(OptToFindDefects) (domain.Defects, error)

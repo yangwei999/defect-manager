@@ -21,6 +21,7 @@ import (
 const uploadedDefect = "update_defect.txt"
 
 type DefectService interface {
+	IsDefectExist(*domain.Issue) (bool, error)
 	SaveDefects(CmdToSaveDefect) error
 	CollectDefects(time time.Time) ([]CollectDefectsDTO, error)
 	GenerateBulletins([]string) error
@@ -50,8 +51,12 @@ type defectService struct {
 	obs         obs.OBS
 }
 
+func (d defectService) IsDefectExist(issue *domain.Issue) (bool, error) {
+	return d.repo.HasDefect(issue)
+}
+
 func (d defectService) SaveDefects(cmd CmdToSaveDefect) error {
-	has, err := d.repo.HasDefect(&cmd)
+	has, err := d.repo.HasDefect(&cmd.Issue)
 	if err != nil {
 		return err
 	}
@@ -115,7 +120,7 @@ func (d defectService) GenerateBulletins(number []string) error {
 	var uploadedFile []string
 	for _, b := range bulletins {
 		maxIdentification++
-		b.Identification = fmt.Sprintf("openEuler-BA-%d-%d", utils.Year(), maxIdentification)
+		b.Identification = fmt.Sprintf("cvrf-openEuler-BA-%d-%d", utils.Year(), maxIdentification)
 
 		b.ProductTree, err = d.productTree.GetTree(b.Component, b.AffectedVersion)
 		if err != nil {
