@@ -12,6 +12,7 @@ import (
 type defectDO struct {
 	ID               int            `gorm:"column:id;primaryKey;autoIncrement"`
 	Number           string         `gorm:"column:number;index"` // Number is the number of issue
+	Title            string         `gorm:"column:title"`
 	Org              string         `gorm:"column:org"`
 	Repo             string         `gorm:"column:repo"`
 	Status           string         `gorm:"column:status"`
@@ -37,6 +38,7 @@ func (d defectDO) TableName() string {
 func (impl defectImpl) toDefectDO(defect *domain.Defect) defectDO {
 	return defectDO{
 		Number:           defect.Issue.Number,
+		Title:            defect.Issue.Title,
 		Org:              defect.Issue.Org,
 		Repo:             defect.Issue.Repo,
 		Status:           defect.Issue.Status.String(),
@@ -93,6 +95,7 @@ func (d defectDO) toDefect() domain.Defect {
 		AffectedVersion:  toSystemVersion(d.AffectedVersion),
 		ABI:              d.ABI,
 		Issue: domain.Issue{
+			Title:  d.Title,
 			Number: d.Number,
 			Org:    d.Org,
 			Repo:   d.Repo,

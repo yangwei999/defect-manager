@@ -8,10 +8,10 @@ import (
 
 type Defects []Defect
 
-//DefectsByComponent is group of defects by component
+// DefectsByComponent is group of defects by component
 type DefectsByComponent []Defect
 
-//DefectsByVersion is group of DefectsByComponent by version
+// DefectsByVersion is group of DefectsByComponent by version
 type DefectsByVersion []Defect
 
 type Defect struct {
@@ -30,6 +30,7 @@ type Defect struct {
 }
 
 type Issue struct {
+	Title  string
 	Number string
 	Org    string
 	Repo   string
@@ -46,7 +47,7 @@ func (d Defect) isAffectVersion(version dp.SystemVersion) bool {
 	return false
 }
 
-//GroupByComponent group defects by component
+// GroupByComponent group defects by component
 func (ds Defects) groupByComponent() map[string]DefectsByComponent {
 	group := make(map[string]DefectsByComponent)
 	for _, d := range ds {
@@ -56,9 +57,9 @@ func (ds Defects) groupByComponent() map[string]DefectsByComponent {
 	return group
 }
 
-//GenerateBulletins DefectsByComponent is a component-differentiated set of defects,
-//Bulletins are consolidated into one when all issues of a component affect all versions currently maintained,
-//otherwise they are split into multiple bulletins by version
+// GenerateBulletins DefectsByComponent is a component-differentiated set of defects,
+// Bulletins are consolidated into one when all issues of a component affect all versions currently maintained,
+// otherwise they are split into multiple bulletins by version
 func (ds Defects) GenerateBulletins() []SecurityBulletin {
 	var securityBulletins []SecurityBulletin
 
@@ -73,8 +74,8 @@ func (ds Defects) GenerateBulletins() []SecurityBulletin {
 	return securityBulletins
 }
 
-//IsCombined determine whether multiple defects under the same component
-//need to be combined into a single bulletin
+// IsCombined determine whether multiple defects under the same component
+// need to be combined into a single bulletin
 func (dsc DefectsByComponent) isCombined() bool {
 	for _, d := range dsc {
 		if len(d.AffectedVersion) != len(dp.MaintainVersion) {
@@ -91,7 +92,7 @@ func (dsc DefectsByComponent) isCombined() bool {
 	return true
 }
 
-//CombinedBulletin put all defects in one bulletin
+// CombinedBulletin put all defects in one bulletin
 func (dsc DefectsByComponent) combinedBulletin() SecurityBulletin {
 	return SecurityBulletin{
 		AffectedVersion: dsc[0].AffectedVersion,
