@@ -233,7 +233,7 @@ func (impl bulletinImpl) vulnerability(sb *domain.SecurityBulletin) []Vulnerabil
 
 	for k, defect := range sb.Defects {
 		var idOfStatus []ProductId
-		for _, v := range defect.AffectedVersion {
+		for _, v := range sb.AffectedVersion {
 			idOfStatus = append(idOfStatus, ProductId{
 				ProductId: v.String(),
 			})
