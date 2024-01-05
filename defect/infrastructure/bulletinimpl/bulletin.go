@@ -203,8 +203,8 @@ func (impl bulletinImpl) productTree(sb *domain.SecurityBulletin) ProductTree {
 		branchOfVersion,
 	}
 
-	var productOfArch []FullProductName
 	for arch, products := range sb.ProductTree {
+		var productOfArch []FullProductName
 		for _, p := range products {
 			productOfArch = append(productOfArch, FullProductName{
 				ProductId:       p.ID,
