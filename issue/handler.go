@@ -244,6 +244,7 @@ func (impl eventHandler) toCmd(e *sdk.NoteEvent, issue parseIssueResult, comment
 		AffectedVersion:  affectedVersion,
 		ABI:              strings.Join(comment.Abi, ","),
 		Issue: domain.Issue{
+			Title:  e.Issue.Title,
 			Number: e.Issue.Number,
 			Org:    e.Repository.Namespace,
 			Repo:   e.Repository.Name,
